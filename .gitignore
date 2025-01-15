@@ -1,0 +1,6 @@
+# nix
+result
+/.pre-commit-config.yaml
+
+# vscode
+.vscode/*
