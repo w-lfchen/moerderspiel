@@ -1,3 +1,6 @@
+mod gamelogic;
+
 fn main() {
-    println!("Hello, world!");
+    let x = gamelogic::game::Game::new();
+    println!("{x:?}");
 }
