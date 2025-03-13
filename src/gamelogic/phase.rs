@@ -1,8 +1,8 @@
-use std::{iter::repeat_with, sync::Arc};
+use std::iter::repeat_with;
 
 use super::{
     circle::{self, Circle, NUM_CIRCLES},
-    player::Player,
+    player::{ID, NewPlayerData, Player},
 };
 
 /// trait for keeping track of a game's state
@@ -18,20 +18,27 @@ impl Setup {
     pub const fn new() -> Self {
         Self { players: vec![] }
     }
+
+    pub fn add_player(&mut self, player_data: NewPlayerData) {
+        let new_id = ID(self.players.len() as u32);
+        self.players
+            .push(Player::new_from_data(new_id, player_data))
+    }
 }
 
 #[derive(Debug)]
-pub struct Running<'a> {
+pub struct Running {
     // players: Arc<[Player]>,
-    circles: [circle::Circle<'a>; circle::NUM_CIRCLES],
+    circles: [circle::Circle; circle::NUM_CIRCLES],
 }
-impl GamePhase for Running<'_> {}
+impl GamePhase for Running {}
 
-impl<'a> Running<'a> {
-    pub fn new(players: &'a [Player]) -> Self {
+impl Running {
+    pub fn new(players: Vec<Player>) -> Self {
         Self {
-            //players,
-            circles: repeat_with(|| Circle::new(players))
+            // players,
+            // this could probably be replaced with a macro
+            circles: repeat_with(|| Circle::new(players.clone()))
                 .take(NUM_CIRCLES)
                 .collect::<Vec<_>>()
                 .try_into()

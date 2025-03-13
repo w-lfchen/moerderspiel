@@ -1,9 +1,38 @@
-#[derive(Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[repr(transparent)]
-struct ID(pub u32);
+pub struct ID(pub u32);
 
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Player {
     id: ID,
     name: String,
+}
+
+impl Player {
+    // id needs to be copy
+    pub fn id(&self) -> ID {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub(super) fn new_from_data(id: ID, data: NewPlayerData) -> Self {
+        Self {
+            id,
+            name: data.name,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct NewPlayerData {
+    name: String,
+}
+
+impl NewPlayerData {
+    pub const fn new(name: String) -> Self {
+        Self { name }
+    }
 }

@@ -1,15 +1,10 @@
-use std::marker::PhantomData;
-
 use super::{
-    circle::{self, Circle},
     phase::{Finished, GamePhase, Running, Setup},
-    player::Player,
+    player::{NewPlayerData, Player},
 };
 
 #[derive(Debug)]
 pub struct Game<P: GamePhase> {
-    // players: Vec<Player>,
-    // circles: [Circle; circle::NUM_CIRCLES],
     phase: P,
 }
 
@@ -21,26 +16,25 @@ impl Game<Setup> {
         }
     }
 
-    pub fn add_player(&mut self, player: Player) {
-        self.phase.players.push(player);
+    pub fn add_player(&mut self, player_data: NewPlayerData) {
+        self.phase.add_player(player_data);
     }
 
-    pub fn start<'a>(self, _: &'a ()) -> Game<Running<'a>> {
-        Game {
-            // players: self.players,
-            phase: Running::new(&self.phase.players),
-        }
+    pub fn start<'a>(self) -> Game<Running> {
+        Game::<Running>::new(self.phase.players)
     }
 }
 
-impl Game<Running<'_>> {
+impl Game<Running> {
     fn new(players: Vec<Player>) -> Self {
-        todo!()
+        Self {
+            phase: Running::new(players),
+        }
     }
 
     pub fn finish(self) -> Game<Finished> {
         Game {
-            //players: self.players,
+            // players: self.players,
             phase: Finished {},
         }
     }
