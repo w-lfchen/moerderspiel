@@ -1,6 +1,7 @@
 use super::{
+    errors::KillingError,
     phase::{Finished, GamePhase, Running, Setup},
-    player::{NewPlayerData, Player},
+    player::{ID, NewPlayerData, Player},
 };
 
 #[derive(Debug)]
@@ -20,7 +21,7 @@ impl Game<Setup> {
         self.phase.add_player(player_data);
     }
 
-    pub fn start<'a>(self) -> Game<Running> {
+    pub fn start(self) -> Game<Running> {
         Game::<Running>::new(self.phase.players)
     }
 }
@@ -37,5 +38,13 @@ impl Game<Running> {
             // players: self.players,
             phase: Finished {},
         }
+    }
+
+    pub fn get_first_target(&self, player: &ID) -> Option<Option<ID>> {
+        self.phase.get_first_target(player)
+    }
+
+    pub fn attempt_to_kill(&mut self, killer: &ID, target: &ID) -> Result<ID, KillingError> {
+        self.phase.attempt_to_kill(killer, target)
     }
 }
