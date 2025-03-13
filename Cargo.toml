@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# currently don't have the time to flesh out error types
+anyhow = "1.0.97"
+# we will need to randomize things such as the order of players in a circle
+rand = "0.9.0"

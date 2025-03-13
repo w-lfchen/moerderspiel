@@ -7,37 +7,41 @@ use super::{
 };
 
 #[derive(Debug)]
-pub struct Game<T: GamePhase> {
-    players: Vec<Player>,
+pub struct Game<P: GamePhase> {
+    // players: Vec<Player>,
     // circles: [Circle; circle::NUM_CIRCLES],
-    phantom: PhantomData<T>,
+    phase: P,
 }
 
 impl Game<Setup> {
     pub const fn new() -> Self {
         Self {
-            players: vec![],
-            phantom: PhantomData,
+            // players: vec![],
+            phase: Setup::new(),
         }
     }
 
     pub fn add_player(&mut self, player: Player) {
-        self.players.push(player);
+        self.phase.players.push(player);
     }
 
-    pub fn start(self) -> Game<Running> {
+    pub fn start<'a>(self, _: &'a ()) -> Game<Running<'a>> {
         Game {
-            players: self.players,
-            phantom: PhantomData,
+            // players: self.players,
+            phase: Running::new(&self.phase.players),
         }
     }
 }
 
-impl Game<Running> {
+impl Game<Running<'_>> {
+    fn new(players: Vec<Player>) -> Self {
+        todo!()
+    }
+
     pub fn finish(self) -> Game<Finished> {
         Game {
-            players: self.players,
-            phantom: PhantomData,
+            //players: self.players,
+            phase: Finished {},
         }
     }
 }
