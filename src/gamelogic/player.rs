@@ -12,17 +12,17 @@ impl Display for ID {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Player {
-    // needs to be unique
+    /// needs to be unique
     id: ID,
-    // // amount of lives. if 0, the player is considered dead as they have been eliminated from all circles
-    // // this value is initialized to the number of circles.
+    // /// amount of lives. if 0, the player is considered dead as they have been eliminated from all circles
+    // /// this value is initialized to the number of circles.
     // lives: u32,
-    // a name the player may choose themselves
+    /// a name the player may choose themselves
     name: String,
 }
 
 impl Player {
-    // id needs to be copy
+    /// id needs to be copy
     pub fn id(&self) -> ID {
         self.id
     }

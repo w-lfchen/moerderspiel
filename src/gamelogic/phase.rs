@@ -1,7 +1,7 @@
 use std::{collections::HashMap, iter::repeat_with};
 
 use super::{
-    circle::{self, Circle, NUM_CIRCLES},
+    circle::{self, Circle, NUM_CIRCLES, Status},
     errors::KillingError,
     player::{ID, NewPlayerData, Player},
 };
@@ -17,7 +17,9 @@ impl GamePhase for Setup {}
 
 impl Setup {
     pub const fn new() -> Self {
-        Self { players: vec![] }
+        Self {
+            players: Vec::new(),
+        }
     }
 
     pub fn add_player(&mut self, player_data: NewPlayerData) {
@@ -50,11 +52,12 @@ impl Running {
     }
 
     /// returns the next target
-    pub fn attempt_to_kill(&mut self, killer: &ID, target: &ID) -> Result<ID, KillingError> {
+    /// TODO: decide what to do for the case of final kill (killer gets own id as the next target)
+    pub fn attempt_to_kill(&mut self, killer: ID, target: ID) -> Result<ID, KillingError> {
         // check whether killer can attempt to kill
         match self.get_lives(killer) {
-            None => return Err(KillingError::KillerNotFound(*killer)),
-            Some(0) => return Err(KillingError::KillerIsDead(*killer)),
+            None => return Err(KillingError::PlayerNotFound(killer)),
+            Some(0) => return Err(KillingError::KillerIsDead(killer)),
             Some(_) => (),
         }
         // attempt to get the index of a circle where the target is assigned to the killer
@@ -63,43 +66,49 @@ impl Running {
             .iter()
             .enumerate()
             .filter_map(|(i, c)| {
-                c.get_target(killer)
+                match c
+                    .get_target(killer)
                     .expect("invariant was not upheld: killer id not found")
-                    .filter(|id| id == target)
-                    .is_some()
-                    .then_some(i)
+                {
+                    Status::Alive { target: order } if *order == target => Some(i),
+                    _ => None,
+                }
             })
             // take the first ring where the target matches even if there might be multiple rings
             .next()
         {
             // do the killing
-            self.circles[circle_index]
-                .attempt_to_kill(killer, target)
-                .map_err(Into::into)
+            self.circles[circle_index].attempt_to_kill(killer, target)
         } else {
             // amount of lives has been checked so target must be invalid if index was not found
-            Err(KillingError::InvalidTarget {
-                killer: *killer,
-                target: *target,
-            })
+            Err(KillingError::InvalidTarget { killer, target })
         }
     }
 
     /// none if given an unknown player id
-    fn get_lives(&self, player: &ID) -> Option<usize> {
-        self.players.contains_key(player).then(|| {
+    fn get_lives(&self, player: ID) -> Option<usize> {
+        self.players.contains_key(&player).then(|| {
             self.circles
                 .iter()
                 .filter(|c| {
                     c.get_target(player)
                         .expect("invariant violated: player is known but not present in circle")
-                        .is_some()
+                        .is_alive()
                 })
                 .count()
         })
     }
 
-    pub(crate) fn get_first_target(&self, player: &ID) -> Option<Option<ID>> {
+    /// if the player id is valid, returns the number of players killed by the given player
+    pub fn get_kills(&self, player: ID) -> Option<usize> {
+        // check for id presence
+        self.players
+            .contains_key(&player)
+            .then(|| self.circles.iter().map(|c| c.get_kills(player)).sum())
+    }
+
+    /// TODO: remove, this is just for testing
+    pub(crate) fn get_first_target(&self, player: ID) -> Option<&Status> {
         self.circles[0].get_target(player)
     }
 }

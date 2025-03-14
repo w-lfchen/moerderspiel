@@ -1,4 +1,5 @@
 use super::{
+    circle::Status,
     errors::KillingError,
     phase::{Finished, GamePhase, Running, Setup},
     player::{ID, NewPlayerData, Player},
@@ -40,11 +41,15 @@ impl Game<Running> {
         }
     }
 
-    pub fn get_first_target(&self, player: &ID) -> Option<Option<ID>> {
+    pub fn get_first_target(&self, player: ID) -> Option<&Status> {
         self.phase.get_first_target(player)
     }
 
-    pub fn attempt_to_kill(&mut self, killer: &ID, target: &ID) -> Result<ID, KillingError> {
+    pub fn attempt_to_kill(&mut self, killer: ID, target: ID) -> Result<ID, KillingError> {
         self.phase.attempt_to_kill(killer, target)
+    }
+
+    pub fn get_kills(&self, player: ID) -> Option<usize> {
+        self.phase.get_kills(player)
     }
 }
