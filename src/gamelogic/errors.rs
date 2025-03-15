@@ -2,6 +2,7 @@ use thiserror::Error;
 
 use super::player::PlayerID;
 
+/// errors that happen when trying to kill someone
 #[derive(Debug, Error)]
 pub enum KillingError {
     #[error("killer {killer} does not have an order for {target}")]

@@ -13,7 +13,6 @@ pub struct Game<P: GamePhase> {
 impl Game<Setup> {
     pub const fn new() -> Self {
         Self {
-            // players: vec![],
             phase: Setup::new(),
         }
     }
@@ -27,7 +26,7 @@ impl Game<Setup> {
     }
 
     pub fn start(self) -> Game<Running> {
-        Game::<Running>::new(self.phase.players)
+        Game::<Running>::new(self.phase.into_players())
     }
 }
 
@@ -43,10 +42,7 @@ impl Game<Running> {
     }
 
     pub fn finish(self) -> Game<Finished> {
-        Game {
-            // players: self.players,
-            phase: Finished {},
-        }
+        Game { phase: Finished {} }
     }
 
     pub fn get_first_target(&self, player: PlayerID) -> Option<&Status> {

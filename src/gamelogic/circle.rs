@@ -77,7 +77,7 @@ impl Status {
 impl Circle {
     /// not taking a slice of ids here because we'd have to allocate a vec for shuffling anyways
     /// there might be a way to do this without an allocation but this a premature optimization for now
-    pub fn new(mut ids: Vec<PlayerID>) -> Self {
+    pub(super) fn new(mut ids: Vec<PlayerID>) -> Self {
         // randomize order of players
         ids.shuffle(&mut rand::rng());
         // there probably is a better way to do this but this should work

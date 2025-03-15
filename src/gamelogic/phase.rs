@@ -13,7 +13,7 @@ pub trait GamePhase {}
 
 #[derive(Debug)]
 pub struct Setup {
-    pub players: Vec<Player>,
+    players: Vec<Player>,
 }
 impl GamePhase for Setup {}
 
@@ -43,6 +43,10 @@ impl Setup {
             .next()
             // remove the player if found
             .map(|i| self.players.remove(i))
+    }
+
+    pub(super) fn into_players(self) -> Vec<Player> {
+        self.players
     }
 }
 
