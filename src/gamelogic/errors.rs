@@ -1,17 +1,17 @@
 use thiserror::Error;
 
-use super::player::ID;
+use super::player::PlayerID;
 
 #[derive(Debug, Error)]
 pub enum KillingError {
     #[error("killer {killer} does not have an order for {target}")]
-    InvalidTarget { killer: ID, target: ID },
+    InvalidTarget { killer: PlayerID, target: PlayerID },
     #[error("killer with id {0} is dead and can't kill")]
-    KillerIsDead(ID),
+    KillerIsDead(PlayerID),
     #[error("no player with id {0} found in circle")]
-    PlayerNotFound(ID),
+    PlayerNotFound(PlayerID),
     #[error("target with id {0} is akready dead and can't be killed")]
-    TargetIsDead(ID),
+    TargetIsDead(PlayerID),
     #[error(transparent)]
     ErrorDuringKilling(#[from] anyhow::Error),
 }

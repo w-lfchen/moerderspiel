@@ -3,23 +3,23 @@ use std::collections::HashMap;
 use anyhow::anyhow;
 use rand::seq::SliceRandom;
 
-use super::{errors::KillingError, player::ID};
+use super::{errors::KillingError, player::PlayerID};
 
 pub(crate) const NUM_CIRCLES: usize = 3;
 
 #[derive(Debug)]
 pub(super) struct Circle {
     /// every player is assigned their current status in a circle
-    mapping: HashMap<ID, Status>,
+    mapping: HashMap<PlayerID, Status>,
 }
 
 /// current status of a player in a circle
 #[derive(Debug)]
 pub enum Status {
     /// the player is alive in this circle, so they have a target to kill
-    Alive { target: ID },
+    Alive { target: PlayerID },
     /// the player has been killed by another player
-    Dead { killer: ID },
+    Dead { killer: PlayerID },
     // this might be worth tracking at some point
     // Removed,
 }
@@ -35,14 +35,14 @@ impl Status {
     }
     */
 
-    pub fn get_target(&self) -> Option<ID> {
+    pub fn get_target(&self) -> Option<PlayerID> {
         match self {
             Status::Alive { target } => Some(target).copied(),
             Status::Dead { .. } => None,
         }
     }
 
-    pub fn get_killer(&self) -> Option<ID> {
+    pub fn get_killer(&self) -> Option<PlayerID> {
         match self {
             Status::Dead { killer } => Some(killer).copied(),
             Status::Alive { .. } => None,
@@ -50,7 +50,7 @@ impl Status {
     }
 
     /// replaces self with [Status::Dead] and sets the killer; returns [Option::None] if already dead
-    pub fn kill(&mut self, killer: ID) -> Option<ID> {
+    pub fn kill(&mut self, killer: PlayerID) -> Option<PlayerID> {
         match self {
             Status::Alive { target } => {
                 let target = *target;
@@ -62,7 +62,7 @@ impl Status {
     }
 
     /// returns the old target and sets the `target` field to `new_target` iff self is alive; returns [Option::None] otherwise
-    pub fn update_target(&mut self, new_target: ID) -> Option<ID> {
+    pub fn update_target(&mut self, new_target: PlayerID) -> Option<PlayerID> {
         match self {
             Status::Alive { target } => {
                 let old_target = *target;
@@ -77,7 +77,7 @@ impl Status {
 impl Circle {
     /// not taking a slice of ids here because we'd have to allocate a vec for shuffling anyways
     /// there might be a way to do this without an allocation but this a premature optimization for now
-    pub fn new(mut ids: Vec<ID>) -> Self {
+    pub fn new(mut ids: Vec<PlayerID>) -> Self {
         // randomize order of players
         ids.shuffle(&mut rand::rng());
         // there probably is a better way to do this but this should work
@@ -97,13 +97,17 @@ impl Circle {
         }
     }
 
-    pub(super) fn get_target(&self, player: ID) -> Option<&Status> {
+    pub(super) fn get_target(&self, player: PlayerID) -> Option<&Status> {
         self.mapping.get(&player)
     }
 
     /// returns the next target
     /// TODO: this function could probably make more assumptions
-    pub(super) fn attempt_to_kill(&mut self, killer: ID, target: ID) -> Result<ID, KillingError> {
+    pub(super) fn attempt_to_kill(
+        &mut self,
+        killer: PlayerID,
+        target: PlayerID,
+    ) -> Result<PlayerID, KillingError> {
         // get killer's order
         let order = self
             .mapping
@@ -113,10 +117,7 @@ impl Circle {
             .ok_or(KillingError::KillerIsDead(killer))?;
         // check if target and order match
         if target != order {
-            return Err(KillingError::InvalidTarget {
-                killer: killer,
-                target: target,
-            });
+            return Err(KillingError::InvalidTarget { killer, target });
         }
         // kill the target
         let next_target = self
@@ -135,10 +136,32 @@ impl Circle {
     }
 
     /// returns the number of kills the player made in this circle. it follows that this must be 0 if the player is not known
-    pub(super) fn get_kills(&self, player: ID) -> usize {
+    pub(super) fn get_kills(&self, player: PlayerID) -> usize {
         self.mapping
             .values()
             .filter(|status| status.get_killer().is_some_and(|killer| killer == player))
             .count()
+    }
+
+    /// removes a player from this circle.
+    ///
+    /// if the player is dead, simply remove them.
+    /// if the player is alive, the person targeting them gets assigned the removed player's target.
+    /// returns the removed player's status iff the player was in the circle
+    pub(super) fn remove_player(&mut self, player: &PlayerID) -> Option<Status> {
+        self.mapping.remove(player).inspect(|status| match status {
+            Status::Alive { target } => {
+                // find the player with an order for the removed one and update their order to the target
+                self.mapping
+                    .values_mut()
+                    .find(|s| s.get_target().is_some_and(|t| t == *player))
+                    .expect(
+                        "invariant violated: unable to find player targeting removed, alive one",
+                    )
+                    .update_target(*target);
+            }
+            // do nothing if dead
+            Status::Dead { .. } => (),
+        })
     }
 }

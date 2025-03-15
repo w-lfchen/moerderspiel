@@ -2,7 +2,7 @@ use super::{
     circle::Status,
     errors::KillingError,
     phase::{Finished, GamePhase, Running, Setup},
-    player::{ID, NewPlayerData, Player},
+    player::{NewPlayerData, Player, PlayerID},
 };
 
 #[derive(Debug)]
@@ -18,8 +18,12 @@ impl Game<Setup> {
         }
     }
 
-    pub fn add_player(&mut self, player_data: NewPlayerData) {
-        self.phase.add_player(player_data);
+    pub fn add_player(&mut self, player_data: NewPlayerData) -> PlayerID {
+        self.phase.add_player(player_data)
+    }
+
+    pub fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {
+        self.phase.remove_player(player)
     }
 
     pub fn start(self) -> Game<Running> {
@@ -34,6 +38,10 @@ impl Game<Running> {
         }
     }
 
+    pub fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {
+        self.phase.remove_player(player)
+    }
+
     pub fn finish(self) -> Game<Finished> {
         Game {
             // players: self.players,
@@ -41,15 +49,19 @@ impl Game<Running> {
         }
     }
 
-    pub fn get_first_target(&self, player: ID) -> Option<&Status> {
+    pub fn get_first_target(&self, player: PlayerID) -> Option<&Status> {
         self.phase.get_first_target(player)
     }
 
-    pub fn attempt_to_kill(&mut self, killer: ID, target: ID) -> Result<ID, KillingError> {
+    pub fn attempt_to_kill(
+        &mut self,
+        killer: PlayerID,
+        target: PlayerID,
+    ) -> Result<PlayerID, KillingError> {
         self.phase.attempt_to_kill(killer, target)
     }
 
-    pub fn get_kills(&self, player: ID) -> Option<usize> {
+    pub fn get_kills(&self, player: PlayerID) -> Option<usize> {
         self.phase.get_kills(player)
     }
 }
