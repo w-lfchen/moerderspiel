@@ -62,3 +62,28 @@ impl NewPlayerData {
         Self { name }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    //! tests to ensure basic apis of the player structs
+    use super::*;
+
+    #[test]
+    fn test_player_id() {
+        let uuid = Uuid::new_v4();
+        let player_id = PlayerID::new(uuid);
+        assert_eq!(uuid, player_id.uuid());
+    }
+
+    #[test]
+    fn test_player() {
+        const NAME: &str = "player";
+        let uuid = Uuid::new_v4();
+        let player_id = PlayerID::new(uuid);
+        let data = NewPlayerData::new(NAME.into());
+        let player = Player::new_from_data(player_id, data);
+
+        assert_eq!(player_id, player.id());
+        assert_eq!(NAME, player.name());
+    }
+}

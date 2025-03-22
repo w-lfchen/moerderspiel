@@ -5,6 +5,9 @@ use super::{
     player::{NewPlayerData, Player, PlayerID},
 };
 
+/// struct representing a game in a given phase.
+///
+/// the apis that are available depend on the phase and there are clear ways to transition between phases.
 #[derive(Debug)]
 pub struct Game<P: GamePhase> {
     phase: P,
