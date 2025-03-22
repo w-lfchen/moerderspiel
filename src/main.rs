@@ -16,14 +16,11 @@ fn main() {
     println!("{game:?}");
     let mut game = game.start();
     println!("{game:#?}");
-    let status = game.get_first_target(killer).unwrap();
-    println!(
-        "{:?}",
-        game.attempt_to_kill(killer, status.get_target().unwrap())
-    );
+    let target = game.get_status(&killer, 0).unwrap().get_target().unwrap();
+    println!("{:?}", game.attempt_to_kill(&killer, &target.clone()));
     game.remove_player(&rem_2);
     println!("{game:#?}");
-    println!("{:?}", game.get_kills(killer));
+    println!("{:?}", game.get_kills(&killer));
     let game = game.finish();
     println!("{game:#?}");
 }

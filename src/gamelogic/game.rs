@@ -1,6 +1,6 @@
 use super::{
     circle::Status,
-    errors::KillingError,
+    errors::{KillingError, NotFoundError},
     phase::{Finished, GamePhase, Running, Setup},
     player::{NewPlayerData, Player, PlayerID},
 };
@@ -41,23 +41,24 @@ impl Game<Running> {
         self.phase.remove_player(player)
     }
 
-    pub fn finish(self) -> Game<Finished> {
-        Game { phase: Finished {} }
-    }
-
-    pub fn get_first_target(&self, player: PlayerID) -> Option<&Status> {
-        self.phase.get_first_target(player)
-    }
-
     pub fn attempt_to_kill(
         &mut self,
-        killer: PlayerID,
-        target: PlayerID,
+        killer: &PlayerID,
+        target: &PlayerID,
     ) -> Result<PlayerID, KillingError> {
         self.phase.attempt_to_kill(killer, target)
     }
 
-    pub fn get_kills(&self, player: PlayerID) -> Option<usize> {
+    pub fn get_kills(&self, player: &PlayerID) -> Option<usize> {
         self.phase.get_kills(player)
+    }
+
+    /// get the status of the player in the circle `index` (zero-indexed).
+    pub fn get_status(&self, player: &PlayerID, index: usize) -> Result<&Status, NotFoundError> {
+        self.phase.get_status(player, index)
+    }
+
+    pub fn finish(self) -> Game<Finished> {
+        Game { phase: Finished {} }
     }
 }
