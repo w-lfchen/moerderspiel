@@ -1,9 +1,12 @@
 use actix_web::{
-    HttpResponse, post,
-    web::{Data, Json},
+    HttpResponse, delete, post,
+    web::{Data, Json, Path},
 };
 
-use crate::{api::GameState, gamelogic::player::NewPlayerData};
+use crate::{
+    api::GameState,
+    gamelogic::player::{NewPlayerData, PlayerID},
+};
 
 use super::State;
 
@@ -19,6 +22,18 @@ pub async fn add_player(
         }
         GameState::Finished(_) => {
             HttpResponse::Conflict().body("can't add a player to a finished game")
+        }
+    }
+}
+
+#[delete("/player/{id}")]
+pub async fn remove_player(path: Path<PlayerID>, state: Data<State>) -> HttpResponse {
+    let id = path.into_inner();
+    match &mut *state.gamestate.write().unwrap() {
+        GameState::Setup(game) => HttpResponse::Ok().json(game.remove_player(&id)),
+        GameState::Running(game) => HttpResponse::Ok().json(game.remove_player(&id)),
+        GameState::Finished(_) => {
+            HttpResponse::Conflict().body("can't remove a player from a finished game")
         }
     }
 }
