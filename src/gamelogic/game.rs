@@ -20,7 +20,7 @@ impl Game<Setup> {
         }
     }
 
-    pub fn add_player(&mut self, player_data: NewPlayerData) -> PlayerID {
+    pub fn add_player(&mut self, player_data: NewPlayerData) -> &Player {
         self.phase.add_player(player_data)
     }
 

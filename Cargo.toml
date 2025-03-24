@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# web framework for rest api
+actix-web = "4.10.2"
 # currently don't have the time to flesh out error types
 anyhow = "1.0.97"
 # we will need to randomize things such as the order of players in a circle
 rand = "0.9.0"
+# (de-)serialization
+serde = { version = "1.0.219", features = ["derive"] }
 # easy custom error types
 thiserror = "2.0.12"
 # i've been told that i should use this
-uuid = { version = "1.16.0", features = ["v4"] }
+uuid = { version = "1.16.0", features = ["serde", "v4"] }

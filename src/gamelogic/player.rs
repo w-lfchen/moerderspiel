@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
 #[repr(transparent)]
 pub struct PlayerID(Uuid);
 
@@ -22,7 +23,7 @@ impl PlayerID {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct Player {
     /// needs to be unique
     id: PlayerID,
@@ -52,7 +53,7 @@ impl Player {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct NewPlayerData {
     name: String,
 }

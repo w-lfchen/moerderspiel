@@ -18,22 +18,25 @@ pub struct Setup {
 impl GamePhase for Setup {}
 
 impl Setup {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             players: Vec::new(),
         }
     }
 
     /// returns the id of the newly inserted player as that is all the new information this method creates
-    pub fn add_player(&mut self, player_data: NewPlayerData) -> PlayerID {
-        let new_id = PlayerID::new(Uuid::new_v4());
+    pub(super) fn add_player(&mut self, player_data: NewPlayerData) -> &Player {
+        self.players.push(Player::new_from_data(
+            PlayerID::new(Uuid::new_v4()),
+            player_data,
+        ));
         self.players
-            .push(Player::new_from_data(new_id, player_data));
-        new_id
+            .last()
+            .expect("player was not present after being inserted")
     }
 
     /// remove a player by id; returns the player if the operation was successful
-    pub fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {
+    pub(super) fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {
         self.players
             .iter()
             // maybe we should store players in a map from the beginning
@@ -59,7 +62,7 @@ pub struct Running {
 impl GamePhase for Running {}
 
 impl Running {
-    pub fn new(players: Vec<Player>) -> Self {
+    pub(super) fn new(players: Vec<Player>) -> Self {
         let ids = players.iter().map(Player::id).collect::<Vec<_>>();
         Self {
             // this could probably be replaced with a macro
@@ -74,7 +77,7 @@ impl Running {
 
     /// returns the next target
     /// TODO: decide what to do for the case of final kill (killer gets own id as the next target)
-    pub fn attempt_to_kill(
+    pub(super) fn attempt_to_kill(
         &mut self,
         killer: &PlayerID,
         target: &PlayerID,
@@ -128,14 +131,14 @@ impl Running {
     }
 
     /// if the player id is valid, returns the number of players killed by the given player
-    pub fn get_kills(&self, player: &PlayerID) -> Option<usize> {
+    pub(super) fn get_kills(&self, player: &PlayerID) -> Option<usize> {
         // check for id presence
         self.players
             .contains_key(player)
             .then(|| self.circles.iter().map(|c| c.get_kills(player)).sum())
     }
 
-    pub fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {
+    pub(super) fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {
         self.players.remove(player).inspect(|_| {
             self.circles.iter_mut().for_each(|c| {
                 // we currently do not care about the status of the removed player
@@ -159,7 +162,11 @@ impl Running {
         })
     }
 
-    pub fn get_status(&self, player: &PlayerID, index: usize) -> Result<&Status, NotFoundError> {
+    pub(super) fn get_status(
+        &self,
+        player: &PlayerID,
+        index: usize,
+    ) -> Result<&Status, NotFoundError> {
         self.circles
             .get(index)
             .ok_or(NotFoundError::CircleNotFound(index))?
