@@ -144,6 +144,21 @@ impl Running {
         })
     }
 
+    /// constructs a map circle_index -> status
+    pub fn get_status_map(&self, player: &PlayerID) -> Option<HashMap<usize, &Status>> {
+        self.players.contains_key(player).then(|| {
+            (0..NUM_CIRCLES)
+                .map(|index| {
+                    (
+                        index,
+                        self.get_status(player, index)
+                            .expect("player was not found in circle or index was incorrect"),
+                    )
+                })
+                .collect()
+        })
+    }
+
     pub fn get_status(&self, player: &PlayerID, index: usize) -> Result<&Status, NotFoundError> {
         self.circles
             .get(index)
