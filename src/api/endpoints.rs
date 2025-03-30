@@ -132,3 +132,11 @@ pub async fn finish_game(state: Data<State>) -> HttpResponse {
         GameState::Finished(_) => HttpResponse::Conflict().body("game is already finished"),
     }
 }
+
+/// TODO: authentication of some sort
+/// wipe everything, new game
+#[post("/reset")]
+pub async fn reset_game(state: Data<State>) -> HttpResponse {
+    *state.gamestate.write().unwrap() = GameState::new();
+    HttpResponse::Ok().finish()
+}
