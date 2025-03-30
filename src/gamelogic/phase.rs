@@ -11,7 +11,7 @@ use super::{
 /// trait for keeping track of a game's state
 pub trait GamePhase {}
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Setup {
     players: Vec<Player>,
 }

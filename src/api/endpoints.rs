@@ -2,6 +2,7 @@ use actix_web::{
     HttpResponse, delete, post,
     web::{Data, Json, Path},
 };
+use serde::Deserialize;
 
 use crate::{
     api::GameState,
@@ -35,5 +36,47 @@ pub async fn remove_player(path: Path<PlayerID>, state: Data<State>) -> HttpResp
         GameState::Finished(_) => {
             HttpResponse::Conflict().body("can't remove a player from a finished game")
         }
+    }
+}
+
+/// TODO: authentication of some sort
+#[post("/start")]
+pub async fn start_game(state: Data<State>) -> HttpResponse {
+    let gamestate = &mut *state.gamestate.write().unwrap();
+    match gamestate {
+        GameState::Setup(game) => {
+            // TODO: maybe move this logic somewhere else
+            // take the value from the old game state, leaving a new game in its place. this doesn't matter as it is never read
+            // due to Vec::new() not allocating, this results in no allocation being made
+            let game = std::mem::take(game);
+            // start the game and construct a new gamestate from it
+            *gamestate = GameState::Running(game.start());
+            HttpResponse::Ok().finish()
+        }
+        GameState::Running(_) => HttpResponse::Conflict().body("game has already started"),
+        GameState::Finished(_) => return HttpResponse::Conflict().body("game is finished"),
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct KillRequest {
+    killer: PlayerID,
+    target: PlayerID,
+}
+
+/// serialization of [KillRequest] as body
+#[post("/kill")]
+pub async fn kill(state: Data<State>, Json(kill_request): Json<KillRequest>) -> HttpResponse {
+    match &mut *state.gamestate.write().unwrap() {
+        GameState::Setup(_) => HttpResponse::Conflict().body("game is in setup phase"),
+        GameState::Running(game) => {
+            match game.attempt_to_kill(&kill_request.killer, &kill_request.target) {
+                Ok(next_target) => {
+                    HttpResponse::Ok().body(format!("next target is: {next_target}"))
+                }
+                Err(e) => HttpResponse::Conflict().body(format!("error during killing: {e}")),
+            }
+        }
+        GameState::Finished(_) => HttpResponse::Conflict().body("game is finished"),
     }
 }

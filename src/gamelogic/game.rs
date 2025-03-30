@@ -8,7 +8,7 @@ use super::{
 /// struct representing a game in a given phase.
 ///
 /// the apis that are available depend on the phase and there are clear ways to transition between phases.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Game<P: GamePhase> {
     phase: P,
 }
