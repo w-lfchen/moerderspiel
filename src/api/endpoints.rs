@@ -6,7 +6,10 @@ use serde::Deserialize;
 
 use crate::{
     api::GameState,
-    gamelogic::player::{NewPlayerData, PlayerID},
+    gamelogic::{
+        game::Game,
+        player::{NewPlayerData, PlayerID},
+    },
 };
 
 use super::State;
@@ -109,5 +112,23 @@ pub async fn get_player_status(path: Path<PlayerID>, state: Data<State>) -> Http
             None => HttpResponse::NotFound().body("player not found"),
         },
         GameState::Finished(_) => todo!(),
+    }
+}
+
+/// TODO: authentication of some sort
+#[post("/finish")]
+pub async fn finish_game(state: Data<State>) -> HttpResponse {
+    let gamestate = &mut *state.gamestate.write().unwrap();
+    match gamestate {
+        GameState::Setup(_) => HttpResponse::Conflict().body("game needs to be started first"),
+        GameState::Running(game) => {
+            // TODO: maybe move this logic somewhere else
+            // basically same logic as starting a game
+            let game = std::mem::replace(game, Game::new().start());
+            // start the game and construct a new gamestate from it
+            *gamestate = GameState::Finished(game.finish());
+            HttpResponse::Ok().finish()
+        }
+        GameState::Finished(_) => HttpResponse::Conflict().body("game is already finished"),
     }
 }
