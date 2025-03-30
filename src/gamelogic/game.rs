@@ -2,7 +2,7 @@ use super::{
     circle::Status,
     errors::{KillingError, NotFoundError},
     phase::{Finished, GamePhase, Running, Setup},
-    player::{NewPlayerData, Player, PlayerID},
+    player::{NewPlayerData, Player, PlayerData, PlayerID},
 };
 
 /// struct representing a game in a given phase.
@@ -54,6 +54,17 @@ impl Game<Running> {
 
     pub fn get_kills(&self, player: &PlayerID) -> Option<usize> {
         self.phase.get_kills(player)
+    }
+
+    pub fn get_player_data(&self, player_id: &PlayerID) -> Result<PlayerData, NotFoundError> {
+        let player = self
+            .phase
+            .get_player(player_id)
+            .ok_or(NotFoundError::PlayerNotFound(*player_id))?;
+        // safe to unwrao since get_player already should have checked whether the player exists
+        let kills = self.get_kills(player_id).expect("player disappeared");
+        let lives = self.phase.get_lives(player_id).expect("player disappeared");
+        Ok(PlayerData::new(player, lives, kills))
     }
 
     /// get the status of the player in the circle `index` (zero-indexed).

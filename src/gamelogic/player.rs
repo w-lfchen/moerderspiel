@@ -64,6 +64,25 @@ impl NewPlayerData {
     }
 }
 
+/// outgoing data about a player
+#[derive(Debug, Serialize)]
+pub struct PlayerData<'a> {
+    #[serde(flatten)]
+    player: &'a Player,
+    lives: usize,
+    kills: usize,
+}
+
+impl<'a> PlayerData<'a> {
+    pub(super) fn new(player: &'a Player, lives: usize, kills: usize) -> Self {
+        Self {
+            player,
+            kills,
+            lives,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     //! tests to ensure basic apis of the player structs

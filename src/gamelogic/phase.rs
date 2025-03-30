@@ -75,6 +75,10 @@ impl Running {
         }
     }
 
+    pub(super) fn get_player(&self, player: &PlayerID) -> Option<&Player> {
+        self.players.get(player)
+    }
+
     /// returns the next target
     /// TODO: decide what to do for the case of final kill (killer gets own id as the next target)
     pub(super) fn attempt_to_kill(
@@ -117,7 +121,7 @@ impl Running {
     }
 
     /// none if given an unknown player id
-    fn get_lives(&self, player: &PlayerID) -> Option<usize> {
+    pub(super) fn get_lives(&self, player: &PlayerID) -> Option<usize> {
         self.players.contains_key(player).then(|| {
             self.circles
                 .iter()

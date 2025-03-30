@@ -1,5 +1,5 @@
 use actix_web::{
-    HttpResponse, delete, post,
+    HttpResponse, delete, get, post,
     web::{Data, Json, Path},
 };
 use serde::Deserialize;
@@ -74,9 +74,27 @@ pub async fn kill(state: Data<State>, Json(kill_request): Json<KillRequest>) -> 
                 Ok(next_target) => {
                     HttpResponse::Ok().body(format!("next target is: {next_target}"))
                 }
+                // TODO: maybe a different response code is more appropriate?
                 Err(e) => HttpResponse::Conflict().body(format!("error during killing: {e}")),
             }
         }
         GameState::Finished(_) => HttpResponse::Conflict().body("game is finished"),
+    }
+}
+
+#[get("/player/{id}")]
+pub async fn get_player_data(path: Path<PlayerID>, state: Data<State>) -> HttpResponse {
+    let player = path.into_inner();
+    match &*state.gamestate.read().unwrap() {
+        // TODO: better response
+        GameState::Setup(_) => HttpResponse::Conflict().body("game is in setup phase"),
+        GameState::Running(game) => {
+            match game.get_player_data(&player) {
+                Ok(data) => HttpResponse::Ok().json(data),
+                // TODO: maybe a different response code is more appropriate?
+                Err(e) => HttpResponse::NotFound().body(format!("something was not found: {e}")),
+            }
+        }
+        GameState::Finished(_) => todo!(),
     }
 }
