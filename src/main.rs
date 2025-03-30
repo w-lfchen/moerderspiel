@@ -1,7 +1,7 @@
 use actix_web::{App, HttpServer, web};
 use api::{
     GameState, State,
-    endpoints::{add_player, remove_player},
+    endpoints::{add_player, get_player_data, get_player_status, kill, remove_player, start_game},
 };
 
 mod api;
@@ -16,6 +16,10 @@ async fn main() -> std::io::Result<()> {
             .app_data(state.clone())
             .service(add_player)
             .service(remove_player)
+            .service(start_game)
+            .service(kill)
+            .service(get_player_data)
+            .service(get_player_status)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

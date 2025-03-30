@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::{
     circle::Status,
     errors::{KillingError, NotFoundError},
@@ -65,6 +67,10 @@ impl Game<Running> {
         let kills = self.get_kills(player_id).expect("player disappeared");
         let lives = self.phase.get_lives(player_id).expect("player disappeared");
         Ok(PlayerData::new(player, lives, kills))
+    }
+
+    pub fn get_status_map(&self, player: &PlayerID) -> Option<HashMap<usize, &Status>> {
+        self.phase.get_status_map(player)
     }
 
     /// get the status of the player in the circle `index` (zero-indexed).

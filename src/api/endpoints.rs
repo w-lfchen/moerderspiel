@@ -98,3 +98,16 @@ pub async fn get_player_data(path: Path<PlayerID>, state: Data<State>) -> HttpRe
         GameState::Finished(_) => todo!(),
     }
 }
+
+#[get("/player/status/{id}")]
+pub async fn get_player_status(path: Path<PlayerID>, state: Data<State>) -> HttpResponse {
+    let player = path.into_inner();
+    match &*state.gamestate.read().unwrap() {
+        GameState::Setup(_) => HttpResponse::Conflict().body("game is in setup phase"),
+        GameState::Running(game) => match game.get_status_map(&player) {
+            Some(map) => HttpResponse::Ok().json(map),
+            None => HttpResponse::NotFound().body("player not found"),
+        },
+        GameState::Finished(_) => todo!(),
+    }
+}
