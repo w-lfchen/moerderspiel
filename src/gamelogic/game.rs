@@ -73,10 +73,12 @@ impl Game<Running> {
         self.phase.get_status_map(player)
     }
 
+    /* might be useful
     /// get the status of the player in the circle `index` (zero-indexed).
     pub fn get_status(&self, player: &PlayerID, index: usize) -> Result<&Status, NotFoundError> {
         self.phase.get_status(player, index)
     }
+    */
 
     pub fn finish(self) -> Game<Finished> {
         Game { phase: Finished {} }

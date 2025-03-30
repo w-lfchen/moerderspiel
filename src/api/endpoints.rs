@@ -57,7 +57,7 @@ pub async fn start_game(state: Data<State>) -> HttpResponse {
             HttpResponse::Ok().finish()
         }
         GameState::Running(_) => HttpResponse::Conflict().body("game has already started"),
-        GameState::Finished(_) => return HttpResponse::Conflict().body("game is finished"),
+        GameState::Finished(_) => HttpResponse::Conflict().body("game is finished"),
     }
 }
 

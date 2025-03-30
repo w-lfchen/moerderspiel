@@ -40,6 +40,7 @@ impl Player {
         self.id
     }
 
+    #[cfg(test)]
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -59,6 +60,7 @@ pub struct NewPlayerData {
 }
 
 impl NewPlayerData {
+    #[cfg(test)]
     pub const fn new(name: String) -> Self {
         Self { name }
     }
