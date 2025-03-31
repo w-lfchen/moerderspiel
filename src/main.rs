@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 use api::{
     GameState, State,
@@ -15,6 +16,8 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            // TODO: :warning: DO NOT SHIP :warning:
+            .wrap(Cors::permissive())
             .app_data(state.clone())
             .service(add_player)
             .service(remove_player)

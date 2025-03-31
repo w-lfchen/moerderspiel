@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+actix-cors = "0.7.1"
 # web framework for rest api
 actix-web = "4.10.2"
 # currently don't have the time to flesh out error types
