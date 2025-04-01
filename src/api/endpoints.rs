@@ -34,8 +34,20 @@ pub async fn add_player(
 pub async fn remove_player(path: Path<PlayerID>, state: Data<State>) -> HttpResponse {
     let id = path.into_inner();
     match &mut *state.gamestate.write().unwrap() {
-        GameState::Setup(game) => HttpResponse::Ok().json(game.remove_player(&id)),
-        GameState::Running(game) => HttpResponse::Ok().json(game.remove_player(&id)),
+        GameState::Setup(game) => {
+            if let Some(player) = game.remove_player(&id) {
+                HttpResponse::Ok().json(player)
+            } else {
+                HttpResponse::NotFound().body("player not found")
+            }
+        }
+        GameState::Running(game) => {
+            if let Some(player) = game.remove_player(&id) {
+                HttpResponse::Ok().json(player)
+            } else {
+                HttpResponse::NotFound().body("player not found")
+            }
+        }
         GameState::Finished(_) => {
             HttpResponse::Conflict().body("can't remove a player from a finished game")
         }
@@ -74,9 +86,7 @@ pub async fn kill(state: Data<State>, Json(kill_request): Json<KillRequest>) -> 
         GameState::Setup(_) => HttpResponse::Conflict().body("game is in setup phase"),
         GameState::Running(game) => {
             match game.attempt_to_kill(&kill_request.killer, &kill_request.target) {
-                Ok(next_target) => {
-                    HttpResponse::Ok().body(format!("next target is: {next_target}"))
-                }
+                Ok(next_target) => HttpResponse::Ok().body(next_target.to_string()),
                 // TODO: maybe a different response code is more appropriate?
                 Err(e) => HttpResponse::Conflict().body(format!("error during killing: {e}")),
             }
