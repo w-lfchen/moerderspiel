@@ -3,7 +3,8 @@ use std::{collections::HashMap, iter::repeat_with};
 use uuid::Uuid;
 
 use super::{
-    circle::{self, Circle, NUM_CIRCLES, Status},
+    NUM_CIRCLES,
+    circle::{self, Circle, Status},
     errors::{KillingError, NotFoundError},
     player::{NewPlayerData, Player, PlayerID},
 };
@@ -22,6 +23,10 @@ impl Setup {
         Self {
             players: Vec::new(),
         }
+    }
+
+    pub(super) fn players(&self) -> impl Iterator<Item = &Player> {
+        self.players.iter()
     }
 
     /// returns the id of the newly inserted player as that is all the new information this method creates
@@ -57,7 +62,7 @@ impl Setup {
 pub struct Running {
     // constant time lookup for player ids instead of linear time through an arc or vec
     players: HashMap<PlayerID, Player>,
-    circles: [circle::Circle; circle::NUM_CIRCLES],
+    circles: [circle::Circle; NUM_CIRCLES],
 }
 impl GamePhase for Running {}
 
@@ -73,6 +78,10 @@ impl Running {
                 .expect("circle array creation should not fail"),
             players: players.into_iter().map(|p| (p.id(), p)).collect(),
         }
+    }
+
+    pub(super) fn players(&self) -> impl Iterator<Item = &Player> {
+        self.players.values()
     }
 
     pub(super) fn get_player(&self, player: &PlayerID) -> Option<&Player> {

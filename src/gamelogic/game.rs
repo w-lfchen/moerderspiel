@@ -22,6 +22,10 @@ impl Game<Setup> {
         }
     }
 
+    pub fn players(&self) -> impl Iterator<Item = &Player> {
+        self.phase.players()
+    }
+
     pub fn add_player(&mut self, player_data: NewPlayerData) -> &Player {
         self.phase.add_player(player_data)
     }
@@ -40,6 +44,10 @@ impl Game<Running> {
         Self {
             phase: Running::new(players),
         }
+    }
+
+    pub fn players(&self) -> impl Iterator<Item = &Player> {
+        self.phase.players()
     }
 
     pub fn remove_player(&mut self, player: &PlayerID) -> Option<Player> {

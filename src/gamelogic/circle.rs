@@ -9,8 +9,6 @@ use super::{
     player::PlayerID,
 };
 
-pub(crate) const NUM_CIRCLES: usize = 3;
-
 #[derive(Debug)]
 pub(super) struct Circle {
     /// every player is assigned their current status in a circle

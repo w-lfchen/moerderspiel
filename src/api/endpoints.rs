@@ -2,13 +2,14 @@ use actix_web::{
     HttpResponse, delete, get, post,
     web::{Data, Json, Path},
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     api::GameState,
     gamelogic::{
+        NUM_CIRCLES,
         game::Game,
-        player::{NewPlayerData, PlayerID},
+        player::{NewPlayerData, Player, PlayerID},
     },
 };
 
@@ -149,4 +150,33 @@ pub async fn finish_game(state: Data<State>) -> HttpResponse {
 pub async fn reset_game(state: Data<State>) -> HttpResponse {
     *state.gamestate.write().unwrap() = GameState::new();
     HttpResponse::Ok().finish()
+}
+
+/// struct for outgoing data about a game
+#[derive(Debug, Serialize)]
+pub struct GameData<'a> {
+    num_circles: usize,
+    phase: &'a str,
+    players: Vec<&'a Player>,
+}
+
+#[get("/game/data")]
+pub async fn game_data(state: Data<State>) -> HttpResponse {
+    match &*state.gamestate.read().unwrap() {
+        GameState::Setup(game) => HttpResponse::Ok().json(GameData {
+            num_circles: NUM_CIRCLES,
+            phase: "setup",
+            players: game.players().collect(),
+        }),
+        GameState::Running(game) => HttpResponse::Ok().json(GameData {
+            num_circles: NUM_CIRCLES,
+            phase: "running",
+            players: game.players().collect(),
+        }),
+        GameState::Finished(_) => HttpResponse::Ok().json(GameData {
+            num_circles: NUM_CIRCLES,
+            phase: "finished",
+            players: vec![], // TODO
+        }),
+    }
 }
