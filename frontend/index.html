@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8" />
+    <title>mörderspiel</title>
+</head>
+
+<body>
+    <header>
+        <h1>mörderspiel</h1>
+    </header>
+    <main>
+        <div id="add_player_div">
+            <p>add player</p>
+            <input type="text" id="add_player_input" placeholder="player name"
+                onkeydown="on_enter(event, create_player)">
+            <button onclick="create_player()">submit</button>
+        </div>
+        <div id="remove_player_div">
+            <p>remove player by id</p>
+            <input type="text" id="remove_player_input" placeholder="player id"
+                onkeydown="on_enter(event, remove_player)">
+            <button onclick="remove_player()">submit</button>
+        </div>
+        <div id="kill_player_div">
+            <p>kill player by id</p>
+            <input type="text" id="killer_input" placeholder="killer id" onkeydown="on_enter(event, kill_player)">
+            <input type="text" id="target_input" placeholder="target id" onkeydown="on_enter(event, kill_player)">
+            <button onclick="kill_player()">submit</button>
+        </div>
+        <div id="player_data_div">
+            <p>get player data by id</p>
+            <input type="text" id="player_data_input" placeholder="player id"
+                onkeydown="on_enter(event, full_player_data)">
+            <button onclick="full_player_data()">submit</button>
+        </div>
+        <div id="game_control_div">
+            <p>game control (admin stuff)</p>
+            <button onclick="start_game()">start</button>
+            <button onclick="finish_game()">finish</button>
+            <button onclick="reset_game()">reset</button>
+            <button onclick="game_data()">get game data</button>
+        </div>
+    </main>
+</body>
+
+<script src="scripts.js"></script>
+
+</html>
