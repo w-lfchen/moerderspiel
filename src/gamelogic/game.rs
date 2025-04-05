@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
+
 use super::{
     circle::Status,
     errors::{KillingError, NotFoundError},
@@ -10,8 +12,9 @@ use super::{
 /// struct representing a game in a given phase.
 ///
 /// the apis that are available depend on the phase and there are clear ways to transition between phases.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Game<P: GamePhase> {
+    #[serde(flatten)]
     phase: P,
 }
 

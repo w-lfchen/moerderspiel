@@ -1,5 +1,5 @@
 use actix_web::{
-    HttpResponse, delete, get, post,
+    HttpResponse, delete, get, post, put,
     web::{Data, Json, Path},
 };
 use serde::{Deserialize, Serialize};
@@ -179,4 +179,17 @@ pub async fn game_data(state: Data<State>) -> HttpResponse {
             players: vec![], // TODO
         }),
     }
+}
+
+/// simply serialize the game in order to export a representation
+#[get("/game/export")]
+pub async fn export_game(state: Data<State>) -> HttpResponse {
+    HttpResponse::Ok().json(&*state.gamestate.read().unwrap())
+}
+
+/// TODO: authentication
+#[put("/game/import")]
+pub async fn import_game(state: Data<State>, Json(game_state): Json<GameState>) -> HttpResponse {
+    *state.gamestate.write().unwrap() = game_state;
+    HttpResponse::Ok().finish()
 }

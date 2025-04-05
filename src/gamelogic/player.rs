@@ -23,7 +23,7 @@ impl PlayerID {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Player {
     /// needs to be unique
     id: PlayerID,
