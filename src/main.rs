@@ -3,8 +3,8 @@ use actix_web::{App, HttpServer, web};
 use api::{
     GameState, State,
     endpoints::{
-        add_player, finish_game, game_data, get_player_data, get_player_status, kill,
-        remove_player, reset_game, start_game,
+        add_player, export_game, finish_game, game_data, get_player_data, get_player_status,
+        import_game, kill, remove_player, reset_game, start_game,
     },
 };
 
@@ -29,6 +29,8 @@ async fn main() -> std::io::Result<()> {
             .service(finish_game)
             .service(reset_game)
             .service(game_data)
+            .service(export_game)
+            .service(import_game)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

@@ -2,12 +2,15 @@ pub mod endpoints;
 
 use std::sync::RwLock;
 
+use serde::{Deserialize, Serialize};
+
 use crate::gamelogic::{
     game::Game,
     phase::{Finished, Running, Setup},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(tag = "phase")]
 pub enum GameState {
     Setup(Game<Setup>),
     Running(Game<Running>),

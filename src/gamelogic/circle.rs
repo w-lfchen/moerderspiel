@@ -2,21 +2,21 @@ use std::collections::HashMap;
 
 use anyhow::anyhow;
 use rand::seq::SliceRandom;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::{
     errors::{KillingError, NotFoundError},
     player::PlayerID,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub(super) struct Circle {
     /// every player is assigned their current status in a circle
     mapping: HashMap<PlayerID, Status>,
 }
 
 /// current status of a player in a circle
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Status {
     /// the player is alive in this circle, so they have a target to kill
     Alive { target: PlayerID },

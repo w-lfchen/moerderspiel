@@ -1,5 +1,6 @@
 use std::{collections::HashMap, iter::repeat_with};
 
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{
@@ -12,7 +13,7 @@ use super::{
 /// trait for keeping track of a game's state
 pub trait GamePhase {}
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Setup {
     players: Vec<Player>,
 }
@@ -58,7 +59,7 @@ impl Setup {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Running {
     // constant time lookup for player ids instead of linear time through an arc or vec
     players: HashMap<PlayerID, Player>,
@@ -188,6 +189,6 @@ impl Running {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Finished {}
 impl GamePhase for Finished {}
