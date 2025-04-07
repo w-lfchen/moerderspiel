@@ -42,6 +42,12 @@
             <button onclick="reset_game()">reset</button>
             <button onclick="game_data()">get game data</button>
         </div>
+        <div id="game_export_div">
+            <p>game export and import</p>
+            <a href="http://localhost:8080/game/export" download="exported-game.json">export game</a>
+            <button onclick="import_game()">import game (warning: overrides current game)</button>
+            <input type="file" id="file_import_input" accept="application/json">
+        </div>
     </main>
 </body>
 

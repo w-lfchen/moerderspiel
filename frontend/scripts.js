@@ -144,3 +144,25 @@ async function game_data() {
     }
     p.innerHTML = response.ok ? JSON.stringify(await response.json()) : "error: " + await response.text();
 }
+
+async function import_game() {
+    const files = document.getElementById("file_import_input").files;
+    let p = document.getElementById("game_export_text");
+    if (p == null) {
+        p = document.createElement('p');
+        p.id = "game_export_text";
+        document.getElementById("game_export_div").appendChild(p);
+    }
+
+    if (files == null) {
+        p.innerHTML = "error fetching files from html element"
+    } else if (files.length == 0) {
+        p.innerHTML = "please select a file first"
+    } else {
+        const response = await fetch(backend_url + "/game/import", {
+            method: "PUT",
+            body: files[0],
+        });
+        p.innerHTML = response.ok ? "import successful" : "error: " + await response.text();
+    }
+}
