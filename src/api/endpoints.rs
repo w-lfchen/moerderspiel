@@ -135,7 +135,7 @@ pub async fn finish_game(state: Data<State>) -> HttpResponse {
         GameState::Running(game) => {
             // TODO: maybe move this logic somewhere else
             // basically same logic as starting a game
-            let game = std::mem::replace(game, Game::new().start());
+            let game = std::mem::replace(game, Game::new(String::new()).start());
             // start the game and construct a new gamestate from it
             *gamestate = GameState::Finished(game.finish());
             HttpResponse::Ok().finish()
@@ -148,7 +148,9 @@ pub async fn finish_game(state: Data<State>) -> HttpResponse {
 /// wipe everything, new game
 #[post("/reset")]
 pub async fn reset_game(state: Data<State>) -> HttpResponse {
-    *state.gamestate.write().unwrap() = GameState::new();
+    let old_gamestate = &mut *state.gamestate.write().unwrap();
+    *old_gamestate =
+        GameState::new_with_id(*old_gamestate.id(), String::from(old_gamestate.name()));
     HttpResponse::Ok().finish()
 }
 

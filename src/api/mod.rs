@@ -5,7 +5,7 @@ use std::sync::RwLock;
 use serde::{Deserialize, Serialize};
 
 use crate::gamelogic::{
-    game::Game,
+    game::{Game, GameID},
     phase::{Finished, Running, Setup},
 };
 
@@ -18,8 +18,28 @@ pub enum GameState {
 }
 
 impl GameState {
-    pub fn new() -> Self {
-        Self::Setup(Game::new())
+    pub fn new(name: String) -> Self {
+        Self::Setup(Game::new(name))
+    }
+
+    pub fn new_with_id(id: GameID, name: String) -> Self {
+        Self::Setup(Game::new_with_id(id, name))
+    }
+
+    pub fn id(&self) -> &GameID {
+        match self {
+            Self::Setup(g) => g.id(),
+            Self::Running(g) => g.id(),
+            Self::Finished(g) => g.id(),
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Setup(g) => g.name(),
+            Self::Running(g) => g.name(),
+            Self::Finished(g) => g.name(),
+        }
     }
 }
 

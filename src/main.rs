@@ -13,7 +13,10 @@ mod gamelogic;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let state = web::Data::new(State::new(GameState::new()));
+    // TODO
+    let state = web::Data::new(State::new(GameState::new(String::from(
+        "TODO: finish support for multiple games",
+    ))));
 
     HttpServer::new(move || {
         App::new()
