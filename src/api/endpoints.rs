@@ -2,20 +2,53 @@ use actix_web::{
     HttpResponse, delete, get, post, put,
     web::{Data, Json, Path},
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{
     api::GameState,
     gamelogic::{
-        NUM_CIRCLES,
-        game::{Game, GameID},
-        player::{NewPlayerData, Player, PlayerID},
+        game::{Game, GameID, NewGameData},
+        player::{NewPlayerData, PlayerID},
     },
 };
 
 use super::State;
 
-#[post("/games/{id}/players")]
+#[post("/games")]
+pub async fn create_game(state: Data<State>, Json(game_data): Json<NewGameData>) -> HttpResponse {
+    let game_state = GameState::from_data(game_data);
+    let id = *game_state.id();
+    let games = &mut *state.games.write().unwrap();
+    games.insert(id, game_state);
+    HttpResponse::Ok().json(games.get(&id))
+}
+
+/// get the data of a given game
+#[get("/games/{game_id}")]
+pub async fn get_game_data(path: Path<GameID>, state: Data<State>) -> HttpResponse {
+    if let Some(game_state) = state.games.read().unwrap().get(&path.into_inner()) {
+        HttpResponse::Ok().json(game_state.get_data())
+    } else {
+        HttpResponse::NotFound().body("game not found")
+    }
+}
+
+/// get data for all games
+#[get("/games")]
+pub async fn get_game_data_all(state: Data<State>) -> HttpResponse {
+    HttpResponse::Ok().json(state.games.read().unwrap().values().collect::<Vec<_>>())
+}
+
+#[delete("/games/{game_id}")]
+pub async fn delete_game(path: Path<GameID>, state: Data<State>) -> HttpResponse {
+    if let Some(game) = state.games.write().unwrap().remove(&path.into_inner()) {
+        HttpResponse::Ok().json(game)
+    } else {
+        HttpResponse::NotFound().body("game not found")
+    }
+}
+
+#[post("/games/{game_id}/players")]
 pub async fn add_player(
     path: Path<GameID>,
     state: Data<State>,
@@ -65,7 +98,7 @@ pub async fn remove_player(path: Path<(GameID, PlayerID)>, state: Data<State>) -
 }
 
 /// TODO: authentication of some sort
-#[post("/games/{id}/start")]
+#[post("/games/{game_id}/start")]
 pub async fn start_game(path: Path<GameID>, state: Data<State>) -> HttpResponse {
     if let Some(game_state) = state.games.write().unwrap().get_mut(&path.into_inner()) {
         match game_state {
@@ -93,7 +126,7 @@ pub struct KillRequest {
 }
 
 /// serialization of [KillRequest] as body
-#[post("/games/{id}/kill")]
+#[post("/games/{game_id}/kill")]
 pub async fn kill(
     path: Path<GameID>,
     state: Data<State>,
@@ -157,7 +190,7 @@ pub async fn get_player_status(path: Path<(GameID, PlayerID)>, state: Data<State
 }
 
 /// TODO: authentication of some sort
-#[post("/games/{id}/finish")]
+#[post("/games/{game_id}/finish")]
 pub async fn finish_game(path: Path<GameID>, state: Data<State>) -> HttpResponse {
     if let Some(game_state) = state.games.write().unwrap().get_mut(&path.into_inner()) {
         match game_state {
@@ -179,7 +212,7 @@ pub async fn finish_game(path: Path<GameID>, state: Data<State>) -> HttpResponse
 
 /// TODO: authentication of some sort
 /// wipe everything, new game
-#[post("/games/{id}/reset")]
+#[post("/games/{game_id}/reset")]
 pub async fn reset_game(path: Path<GameID>, state: Data<State>) -> HttpResponse {
     if let Some(old_gamestate) = state.games.write().unwrap().get_mut(&path.into_inner()) {
         *old_gamestate =
@@ -190,41 +223,8 @@ pub async fn reset_game(path: Path<GameID>, state: Data<State>) -> HttpResponse 
     }
 }
 
-/// struct for outgoing data about a game
-#[derive(Debug, Serialize)]
-pub struct GameData<'a> {
-    num_circles: usize,
-    phase: &'a str,
-    players: Vec<&'a Player>,
-}
-
-#[get("/games/{id}/data")]
-pub async fn game_data(path: Path<GameID>, state: Data<State>) -> HttpResponse {
-    if let Some(game_state) = state.games.read().unwrap().get(&path.into_inner()) {
-        match game_state {
-            GameState::Setup(game) => HttpResponse::Ok().json(GameData {
-                num_circles: NUM_CIRCLES,
-                phase: "setup",
-                players: game.players().collect(),
-            }),
-            GameState::Running(game) => HttpResponse::Ok().json(GameData {
-                num_circles: NUM_CIRCLES,
-                phase: "running",
-                players: game.players().collect(),
-            }),
-            GameState::Finished(_) => HttpResponse::Ok().json(GameData {
-                num_circles: NUM_CIRCLES,
-                phase: "finished",
-                players: vec![], // TODO
-            }),
-        }
-    } else {
-        HttpResponse::NotFound().body("game not found")
-    }
-}
-
 /// simply serialize the game in order to export a representation
-#[get("/games/{id}/export")]
+#[get("/games/{game_id}/export")]
 pub async fn export_game(path: Path<GameID>, state: Data<State>) -> HttpResponse {
     if let Some(game_state) = state.games.read().unwrap().get(&path.into_inner()) {
         HttpResponse::Ok().json(game_state)

@@ -13,6 +13,18 @@ use super::{
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GameID(Uuid);
 
+impl std::fmt::Display for GameID {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// struct representing the data required to create a new game.
+#[derive(Debug, Deserialize)]
+pub struct NewGameData {
+    name: Option<String>,
+}
+
 /// struct representing a game in a given phase.
 ///
 /// the apis that are available depend on the phase and there are clear ways to transition between phases.
@@ -35,6 +47,16 @@ impl<P: GamePhase> Game<P> {
 }
 
 impl Game<Setup> {
+    /// assigns a new id
+    pub fn from_data(data: NewGameData) -> Self {
+        let id = GameID(Uuid::new_v4());
+        Self {
+            id,
+            name: data.name.unwrap_or_else(|| id.to_string()),
+            phase: Setup::new(),
+        }
+    }
+
     /// assigns a new id
     pub fn new(name: String) -> Self {
         Self {
