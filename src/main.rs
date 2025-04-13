@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 use api::{
-    GameState, State,
+    State,
     endpoints::{
         add_player, export_game, finish_game, game_data, get_player_data, get_player_status,
         import_game, kill, remove_player, reset_game, start_game,
@@ -13,10 +13,7 @@ mod gamelogic;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // TODO
-    let state = web::Data::new(State::new(GameState::new(String::from(
-        "TODO: finish support for multiple games",
-    ))));
+    let state = web::Data::new(State::new());
 
     HttpServer::new(move || {
         App::new()

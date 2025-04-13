@@ -1,6 +1,6 @@
 pub mod endpoints;
 
-use std::sync::RwLock;
+use std::{collections::HashMap, sync::RwLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -45,13 +45,14 @@ impl GameState {
 
 #[derive(Debug)]
 pub struct State {
-    gamestate: RwLock<GameState>,
+    // hashmap for easy, constant time lookup of games
+    games: RwLock<HashMap<GameID, GameState>>,
 }
 
 impl State {
-    pub fn new(gamestate: GameState) -> Self {
+    pub fn new() -> Self {
         Self {
-            gamestate: RwLock::new(gamestate),
+            games: RwLock::new(HashMap::new()),
         }
     }
 }

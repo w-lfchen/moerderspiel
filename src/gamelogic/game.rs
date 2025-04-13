@@ -10,7 +10,7 @@ use super::{
     player::{NewPlayerData, Player, PlayerData, PlayerID},
 };
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GameID(Uuid);
 
 /// struct representing a game in a given phase.
