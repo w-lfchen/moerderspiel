@@ -180,7 +180,7 @@ pub async fn get_player_data(path: Path<(GameID, PlayerID)>, state: Data<State>)
     }
 }
 
-#[get("/games/{game_id}/players/players/{player_id}/status")]
+#[get("/games/{game_id}/players/{player_id}/status")]
 pub async fn get_player_status(path: Path<(GameID, PlayerID)>, state: Data<State>) -> HttpResponse {
     let (game_id, player_id) = path.into_inner();
     if let Some(game_state) = state.games.read().unwrap().get(&game_id) {

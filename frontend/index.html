@@ -11,6 +11,9 @@
         <h1>mörderspiel</h1>
     </header>
     <main>
+        <div id="game_selection_div">
+            <p>select game</p>
+        </div>
         <div id="add_player_div">
             <p>add player</p>
             <input type="text" id="add_player_input" placeholder="player name"
@@ -44,7 +47,7 @@
         </div>
         <div id="game_export_div">
             <p>game export and import</p>
-            <a href="http://localhost:8080/game/export" download="exported-game.json">export game</a>
+            <button onclick="export_game()">export game</button>
             <button onclick="import_game()">import game (warning: overrides current game)</button>
             <input type="file" id="file_import_input" accept="application/json">
         </div>
