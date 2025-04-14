@@ -36,7 +36,15 @@ pub async fn get_game_data(path: Path<GameID>, state: Data<State>) -> HttpRespon
 /// get data for all games
 #[get("/games")]
 pub async fn get_game_data_all(state: Data<State>) -> HttpResponse {
-    HttpResponse::Ok().json(state.games.read().unwrap().values().collect::<Vec<_>>())
+    HttpResponse::Ok().json(
+        state
+            .games
+            .read()
+            .unwrap()
+            .values()
+            .map(GameState::get_data)
+            .collect::<Vec<_>>(),
+    )
 }
 
 #[delete("/games/{game_id}")]
