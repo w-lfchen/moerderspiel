@@ -38,6 +38,13 @@
                 onkeydown="on_enter(event, full_player_data)">
             <button onclick="full_player_data()">submit</button>
         </div>
+        <div id="game_management_div">
+            <p>manage games</p>
+            <input type="text" id="game_name_input" placeholder="game name"
+                onkeydown="on_enter(event, create_game)">
+            <button onclick="create_game()">create game</button>
+            <button onclick="delete_game()">delete selected game</button>
+        </div>
         <div id="game_control_div">
             <p>game control (admin stuff)</p>
             <button onclick="start_game()">start</button>

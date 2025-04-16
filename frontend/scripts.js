@@ -195,6 +195,39 @@ async function export_game() {
     window.location.href = `${backend_url}/games/${game_id}/export`
 }
 
+async function create_game() {
+    const p = get_p("game_management");
+    const name = document.getElementById("game_name_input").value;
+    const body = {};
+    if (name != "") {
+        body.name = name;
+    }
+
+    const response = await fetch(`${backend_url}/games`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+    });
+    if (response.ok) {
+        const game = await response.json();
+        p.innerHTML = `created game with id ${game.id}, ${game.num_circles} circles and name "${game.name}"`;
+    } else {
+        p.innerHTML = "error: " + await response.text();
+    }
+}
+
+async function delete_game() {
+    const game_id = get_game_id();
+    const p = get_p("game_management");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+
+    const response = await fetch(`${backend_url}/games/${game_id}`, { method: "DELETE" });
+    p.innerHTML = response.ok ? "game deleted, export:<br>" + JSON.stringify(await response.json()) : "error: " + await response.text();
+}
+
 async function create_game_selection() {
     const response = await fetch(`${backend_url}/games`);
     const selection_div = document.getElementById("game_selection_div");

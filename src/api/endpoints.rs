@@ -20,7 +20,7 @@ pub async fn create_game(state: Data<State>, Json(game_data): Json<NewGameData>)
     let id = *game_state.id();
     let games = &mut *state.games.write().unwrap();
     games.insert(id, game_state);
-    HttpResponse::Ok().json(games.get(&id))
+    HttpResponse::Ok().json(games.get(&id).map(|g| g.get_data()))
 }
 
 /// get the data of a given game
