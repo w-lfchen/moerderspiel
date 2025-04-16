@@ -6,18 +6,35 @@ function on_enter(event, f) {
     }
 }
 
+// returns null if no selection has been made
+function get_game_id() {
+    const selection = document.querySelector('input[name=game_selection]:checked');
+    return selection == null ? null : selection.value;
+}
+
+function get_p(name) {
+    let p = document.getElementById(name + "_text");
+    if (p == null) {
+        p = document.createElement('p');
+        p.id = name + "_text";
+        document.getElementById(name + "_div").appendChild(p);
+    }
+    return p;
+}
+
 async function create_player() {
-    const response = await fetch(backend_url + "/player", {
+    const game_id = get_game_id();
+    const p = get_p("add_player");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+
+    const response = await fetch(`${backend_url}/games/${game_id}/players`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ name: document.getElementById("add_player_input").value }),
     });
-    let p = document.getElementById("added_player");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "added_player";
-        document.getElementById("add_player_div").appendChild(p);
-    }
     if (response.ok) {
         const player = await response.json();
         p.innerHTML = `added player with id ${player.id} and name "${player.name}"`;
@@ -27,11 +44,18 @@ async function create_player() {
 }
 
 async function remove_player() {
-    const id = document.getElementById("remove_player_input").value;
+    const game_id = get_game_id();
+    const player_id = document.getElementById("remove_player_input").value;
+    const p = get_p("remove_player");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+
     let text = "error: id is empty";
     // check for empty string is required since the backend routing matches this as a different endpoint if the string is empty
-    if (id.length > 0) {
-        const response = await fetch(`${backend_url}/player/${id}`, { method: "DELETE" });
+    if (player_id.length > 0) {
+        const response = await fetch(`${backend_url}/games/${game_id}/players/${player_id}`, { method: "DELETE" });
         if (response.ok) {
             const player = await response.json();
             text = `removed player "${player.name}", had id ${player.id}`;
@@ -39,17 +63,18 @@ async function remove_player() {
             text = "error: " + await response.text();
         }
     }
-    let p = document.getElementById("removed_player");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "removed_player";
-        document.getElementById("remove_player_div").appendChild(p);
-    }
     p.innerHTML = text;
 }
 
 async function kill_player() {
-    const response = await fetch(backend_url + "/kill", {
+    const game_id = get_game_id();
+    const p = get_p("kill_player");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+
+    const response = await fetch(`${backend_url}/games/${game_id}/kill`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -57,54 +82,57 @@ async function kill_player() {
             target: document.getElementById("target_input").value,
         }),
     });
-    let p = document.getElementById("next_target");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "next_target";
-        document.getElementById("kill_player_div").appendChild(p);
-    }
     p.innerHTML = response.ok ? `kill successful, next target has id ${await response.text()}` : "error: " + await response.text();
 }
 
 async function start_game() {
-    const response = await fetch(backend_url + "/start", { method: "POST" });
-    let p = document.getElementById("game_control_text");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "game_control_text";
-        document.getElementById("game_control_div").appendChild(p);
+    const game_id = get_game_id();
+    const p = get_p("game_control");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
     }
+
+    const response = await fetch(`${backend_url}/games/${game_id}/start`, { method: "POST" });
     p.innerHTML = response.ok ? "game started" : "error: " + await response.text();
 }
 
 async function finish_game() {
-    const response = await fetch(backend_url + "/finish", { method: "POST" });
-    let p = document.getElementById("game_control_text");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "game_control_text";
-        document.getElementById("game_control_div").appendChild(p);
+    const game_id = get_game_id();
+    const p = get_p("game_control");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
     }
+    const response = await fetch(`${backend_url}/games/${game_id}/finish`, { method: "POST" });
     p.innerHTML = response.ok ? "game finished" : "error: " + await response.text();
 }
 
 async function reset_game() {
-    const response = await fetch(backend_url + "/reset", { method: "POST" });
-    let p = document.getElementById("game_control_text");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "game_control_text";
-        document.getElementById("game_control_div").appendChild(p);
+    const game_id = get_game_id();
+    const p = get_p("game_control");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
     }
+
+    const response = await fetch(`${backend_url}/games/${game_id}/reset`, { method: "POST" });
     p.innerHTML = response.ok ? "game reset" : "error: " + await response.text();
 }
 
 async function full_player_data() {
-    const id = document.getElementById("player_data_input").value;
+    const game_id = get_game_id();
+    const p = get_p("player_data");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+
+    const player_id = document.getElementById("player_data_input").value;
     let text = "error: id is empty";
-    if (id != null) {
-        const data_response = await fetch(backend_url + "/player/" + id);
-        const status_response = await fetch(backend_url + "/player/status/" + id);
+    if (player_id != null) {
+        const data_response = await fetch(`${backend_url}/games/${game_id}/players/${player_id}`);
+        const status_response = await fetch(`${backend_url}/games/${game_id}/players/${player_id}/status`);
         if (data_response.ok) {
             const player_data = await data_response.json();
             text = `player "${player_data.name}" has ${player_data.lives} lives, ${player_data.kills} kills, and id ${player_data.id}`;
@@ -125,44 +153,111 @@ async function full_player_data() {
             text += "error while fetching status: " + await status_response.text();
         }
     }
-    let p = document.getElementById("player_data");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "player_data";
-        document.getElementById("player_data_div").appendChild(p);
-    }
     p.innerHTML = text;
 }
 
 async function game_data() {
-    const response = await fetch(backend_url + "/game/data");
-    let p = document.getElementById("game_control_text");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "game_control_text";
-        document.getElementById("game_control_div").appendChild(p);
+    const game_id = get_game_id();
+    const p = get_p("game_control");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
     }
+
+    const response = await fetch(`${backend_url}/games/${game_id}`);
     p.innerHTML = response.ok ? JSON.stringify(await response.json()) : "error: " + await response.text();
 }
 
 async function import_game() {
     const files = document.getElementById("file_import_input").files;
-    let p = document.getElementById("game_export_text");
-    if (p == null) {
-        p = document.createElement('p');
-        p.id = "game_export_text";
-        document.getElementById("game_export_div").appendChild(p);
-    }
+    const p = get_p("game_export");
 
     if (files == null) {
         p.innerHTML = "error fetching files from html element"
     } else if (files.length == 0) {
         p.innerHTML = "please select a file first"
     } else {
-        const response = await fetch(backend_url + "/game/import", {
+        const response = await fetch(`${backend_url}/games/import`, {
             method: "PUT",
             body: files[0],
         });
         p.innerHTML = response.ok ? "import successful" : "error: " + await response.text();
     }
 }
+
+async function export_game() {
+    const game_id = get_game_id();
+    const p = get_p("game_export");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+    window.location.href = `${backend_url}/games/${game_id}/export`
+}
+
+async function create_game() {
+    const p = get_p("game_management");
+    const name = document.getElementById("game_name_input").value;
+    const body = {};
+    if (name != "") {
+        body.name = name;
+    }
+
+    const response = await fetch(`${backend_url}/games`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+    });
+    if (response.ok) {
+        const game = await response.json();
+        p.innerHTML = `created game with id ${game.id}, ${game.num_circles} circles and name "${game.name}"`;
+    } else {
+        p.innerHTML = "error: " + await response.text();
+    }
+}
+
+async function delete_game() {
+    const game_id = get_game_id();
+    const p = get_p("game_management");
+    if (game_id == null) {
+        p.innerHTML = "please select a game first";
+        return;
+    }
+
+    const response = await fetch(`${backend_url}/games/${game_id}`, { method: "DELETE" });
+    p.innerHTML = response.ok ? "game deleted, export:<br>" + JSON.stringify(await response.json()) : "error: " + await response.text();
+}
+
+async function create_game_selection() {
+    const response = await fetch(`${backend_url}/games`);
+    const p = document.getElementById("game_selection_status");
+    if (!response.ok) {
+        p.innerHTML = "error fetching games: " + await response.text();
+        return;
+    }
+    const games = await response.json();
+    if (games.length == 0) {
+        p.innerHTML = "no existing games";
+        return;
+    }
+    const selection_div = document.getElementById("game_selection_div");
+    games.forEach(game => {
+        const radio_button = document.createElement("input");
+        radio_button.type = "radio";
+        radio_button.id = "selection-" + game.id;
+        radio_button.name = "game_selection";
+        radio_button.value = game.id;
+
+        const label = document.createElement("label");
+        label.for = radio_button.id;
+        label.innerHTML = `${game.name} (in phase ${game.phase} with ${game.players.length} players)`;
+
+        selection_div.appendChild(radio_button);
+        selection_div.appendChild(label);
+        selection_div.appendChild(document.createElement("br"));
+    });
+    p.remove();
+}
+
+// call on page load
+create_game_selection();

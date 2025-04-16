@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use super::{
     circle::Status,
@@ -9,18 +10,67 @@ use super::{
     player::{NewPlayerData, Player, PlayerData, PlayerID},
 };
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct GameID(Uuid);
+
+impl std::fmt::Display for GameID {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// struct representing the data required to create a new game.
+#[derive(Debug, Deserialize)]
+pub struct NewGameData {
+    name: Option<String>,
+}
+
 /// struct representing a game in a given phase.
 ///
 /// the apis that are available depend on the phase and there are clear ways to transition between phases.
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Game<P: GamePhase> {
+    id: GameID,
+    name: String,
     #[serde(flatten)]
     phase: P,
 }
 
+impl<P: GamePhase> Game<P> {
+    pub fn id(&self) -> &GameID {
+        &self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
 impl Game<Setup> {
-    pub const fn new() -> Self {
+    /// assigns a new id
+    pub fn from_data(data: NewGameData) -> Self {
+        let id = GameID(Uuid::new_v4());
         Self {
+            id,
+            name: data.name.unwrap_or_else(|| id.to_string()),
+            phase: Setup::new(),
+        }
+    }
+
+    /// assigns a new id
+    pub fn new(name: String) -> Self {
+        Self {
+            id: GameID(Uuid::new_v4()),
+            name,
+            phase: Setup::new(),
+        }
+    }
+
+    /// build from given id
+    pub fn new_with_id(id: GameID, name: String) -> Self {
+        Self {
+            id,
+            name,
             phase: Setup::new(),
         }
     }
@@ -38,17 +88,15 @@ impl Game<Setup> {
     }
 
     pub fn start(self) -> Game<Running> {
-        Game::<Running>::new(self.phase.into_players())
+        Game {
+            id: self.id,
+            name: self.name,
+            phase: Running::new(self.phase.into_players()),
+        }
     }
 }
 
 impl Game<Running> {
-    fn new(players: Vec<Player>) -> Self {
-        Self {
-            phase: Running::new(players),
-        }
-    }
-
     pub fn players(&self) -> impl Iterator<Item = &Player> {
         self.phase.players()
     }
@@ -92,6 +140,10 @@ impl Game<Running> {
     */
 
     pub fn finish(self) -> Game<Finished> {
-        Game { phase: Finished {} }
+        Game {
+            id: self.id,
+            name: self.name,
+            phase: Finished {},
+        }
     }
 }

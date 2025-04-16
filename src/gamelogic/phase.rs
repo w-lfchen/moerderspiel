@@ -32,7 +32,7 @@ impl Setup {
 
     /// returns the id of the newly inserted player as that is all the new information this method creates
     pub(super) fn add_player(&mut self, player_data: NewPlayerData) -> &Player {
-        self.players.push(Player::new_from_data(
+        self.players.push(Player::from_data(
             PlayerID::new(Uuid::new_v4()),
             player_data,
         ));

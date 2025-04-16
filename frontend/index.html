@@ -11,6 +11,10 @@
         <h1>mörderspiel</h1>
     </header>
     <main>
+        <div id="game_selection_div">
+            <p>select game</p>
+            <p id="game_selection_status">loading games...</p>
+        </div>
         <div id="add_player_div">
             <p>add player</p>
             <input type="text" id="add_player_input" placeholder="player name"
@@ -35,6 +39,13 @@
                 onkeydown="on_enter(event, full_player_data)">
             <button onclick="full_player_data()">submit</button>
         </div>
+        <div id="game_management_div">
+            <p>manage games</p>
+            <input type="text" id="game_name_input" placeholder="game name"
+                onkeydown="on_enter(event, create_game)">
+            <button onclick="create_game()">create game</button>
+            <button onclick="delete_game()">delete selected game</button>
+        </div>
         <div id="game_control_div">
             <p>game control (admin stuff)</p>
             <button onclick="start_game()">start</button>
@@ -44,7 +55,7 @@
         </div>
         <div id="game_export_div">
             <p>game export and import</p>
-            <a href="http://localhost:8080/game/export" download="exported-game.json">export game</a>
+            <button onclick="export_game()">export game</button>
             <button onclick="import_game()">import game (warning: overrides current game)</button>
             <input type="file" id="file_import_input" accept="application/json">
         </div>

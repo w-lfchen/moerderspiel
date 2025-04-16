@@ -45,7 +45,7 @@ impl Player {
         &self.name
     }
 
-    pub(super) fn new_from_data(id: PlayerID, data: NewPlayerData) -> Self {
+    pub(super) fn from_data(id: PlayerID, data: NewPlayerData) -> Self {
         Self {
             id,
             // lives: NUM_CIRCLES as u32,
@@ -103,7 +103,7 @@ mod tests {
         let uuid = Uuid::new_v4();
         let player_id = PlayerID::new(uuid);
         let data = NewPlayerData::new(NAME.into());
-        let player = Player::new_from_data(player_id, data);
+        let player = Player::from_data(player_id, data);
 
         assert_eq!(player_id, player.id());
         assert_eq!(NAME, player.name());
