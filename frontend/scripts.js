@@ -230,15 +230,18 @@ async function delete_game() {
 
 async function create_game_selection() {
     const response = await fetch(`${backend_url}/games`);
-    const selection_div = document.getElementById("game_selection_div");
+    const p = document.getElementById("game_selection_status");
     if (!response.ok) {
-        p = document.createElement("p");
-        p.id = "game_selection_text";
         p.innerHTML = "error fetching games: " + await response.text();
-        selection_div.appendChild(p);
         return;
     }
-    (await response.json()).forEach(game => {
+    const games = await response.json();
+    if (games.length == 0) {
+        p.innerHTML = "no existing games";
+        return;
+    }
+    const selection_div = document.getElementById("game_selection_div");
+    games.forEach(game => {
         const radio_button = document.createElement("input");
         radio_button.type = "radio";
         radio_button.id = "selection-" + game.id;
@@ -253,6 +256,7 @@ async function create_game_selection() {
         selection_div.appendChild(label);
         selection_div.appendChild(document.createElement("br"));
     });
+    p.remove();
 }
 
 // call on page load
