@@ -7,3 +7,6 @@ result
 
 # rust
 /target
+
+# ssl
+certs

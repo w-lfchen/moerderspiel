@@ -8,13 +8,22 @@ use api::{
         reset_game, start_game,
     },
 };
+use openssl::ssl::{SslAcceptor, SslMethod};
 
 mod api;
 mod gamelogic;
 
+// TODO: make configurable
+const CERT_PATH: &str = "certs/cert.pem";
+const KEY_PATH: &str = "certs/key.pem";
+
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     let state = web::Data::new(State::new());
+    // ssl setup
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
+    builder.set_private_key_file(KEY_PATH, openssl::ssl::SslFiletype::PEM)?;
+    builder.set_certificate_chain_file(CERT_PATH)?;
 
     HttpServer::new(move || {
         App::new()
@@ -36,7 +45,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_game_data_all)
             .service(delete_game)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind_openssl(("127.0.0.1", 8080), builder)?
     .run()
     .await
+    .map_err(From::from)
 }
