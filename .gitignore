@@ -8,5 +8,8 @@ result
 # rust
 /target
 
-# ssl
-certs
+# tls/ssl
+/tls
+
+# secrets
+.env

@@ -9,6 +9,8 @@ actix-cors = "0.7.1"
 actix-web = {version = "4.10.2", features = ["openssl"]}
 # currently don't have the time to flesh out error types
 anyhow = "1.0.97"
+# env file support
+dotenvy = "0.15.7"
 # ssl
 openssl = "0.10.72"
 # we will need to randomize things such as the order of players in a circle
