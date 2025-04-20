@@ -8,24 +8,20 @@ use api::{
         reset_game, start_game,
     },
 };
+use config::Config;
 use openssl::ssl::{SslAcceptor, SslMethod};
 
 mod api;
+mod config;
 mod gamelogic;
-
-// TODO: make configurable
-const CERT_PATH: &str = "certs/cert.pem";
-const KEY_PATH: &str = "certs/key.pem";
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
-    let state = web::Data::new(State::new());
-    // ssl setup
-    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
-    builder.set_private_key_file(KEY_PATH, openssl::ssl::SslFiletype::PEM)?;
-    builder.set_certificate_chain_file(CERT_PATH)?;
+    dotenvy::dotenv()?;
 
-    HttpServer::new(move || {
+    let config = Config::from_env();
+    let state = web::Data::new(State::new());
+    let server = HttpServer::new(move || {
         App::new()
             // TODO: :warning: DO NOT SHIP :warning:
             .wrap(Cors::permissive())
@@ -44,8 +40,20 @@ async fn main() -> anyhow::Result<()> {
             .service(create_game)
             .service(get_game_data_all)
             .service(delete_game)
-    })
-    .bind_openssl(("127.0.0.1", 8080), builder)?
+    });
+
+    match (config.cert_path(), config.key_path()) {
+        // both certificate and key need to be set for openssl tls support
+        (Some(cert_path), Some(key_path)) => {
+            // ssl setup
+            let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
+            builder.set_private_key_file(key_path, openssl::ssl::SslFiletype::PEM)?;
+            builder.set_certificate_chain_file(cert_path)?;
+
+            server.bind_openssl((config.address(), config.port()), builder)
+        }
+        _ => server.bind((config.address(), config.port())),
+    }?
     .run()
     .await
     .map_err(From::from)
