@@ -1,4 +1,4 @@
-const backend_url = "https://localhost:8080";
+const backend_url = "http://localhost:3000";
 
 function on_enter(event, f) {
     if (event.keyCode == 13) {
