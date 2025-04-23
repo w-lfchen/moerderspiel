@@ -25,54 +25,74 @@
       nixpkgs,
     }:
     let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ fenix.overlays.default ];
-      };
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+      allPkgs = forAllSystems (
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [ fenix.overlays.default ];
+        }
+      );
       # using the stable toolchain
-      rust-toolchain = fenix.packages.${system}.stable;
+      mkRustToolchain = system: fenix.packages.${system}.stable;
     in
     {
-      checks.${system}.pre-commit-hooks = git-hooks.lib.${system}.run {
-        hooks = {
-          end-of-file-fixer.enable = true;
-          nixfmt-rfc-style.enable = true;
-          rustfmt = {
-            enable = true;
-            packageOverrides = {
-              inherit (rust-toolchain) cargo rustfmt;
+      checks = forAllSystems (system: {
+        pre-commit-hooks = git-hooks.lib.${system}.run {
+          hooks = {
+            end-of-file-fixer.enable = true;
+            nixfmt-rfc-style.enable = true;
+            rustfmt = {
+              enable = true;
+              packageOverrides = {
+                inherit (mkRustToolchain system) cargo rustfmt;
+              };
             };
+            trim-trailing-whitespace.enable = true;
           };
-          trim-trailing-whitespace.enable = true;
+          src = ./.;
         };
-        src = ./.;
-      };
-      devShells.${system}.default = pkgs.mkShell {
-        # git hooks
-        inherit (self.checks.${system}.pre-commit-hooks) shellHook;
-        inputsFrom = self.checks.${system}.pre-commit-hooks.enabledPackages;
+      });
+      devShells = forAllSystems (
+        system:
+        let
+          inherit (allPkgs.${system}) pkgs;
+          rust-toolchain = mkRustToolchain system;
+        in
+        {
+          default = pkgs.mkShell {
+            # git hooks
+            inherit (self.checks.${system}.pre-commit-hooks) shellHook;
+            inputsFrom = self.checks.${system}.pre-commit-hooks.enabledPackages;
 
-        nativeBuildInputs = with pkgs; [
-          # improve nested shells
-          bashInteractive
-          pkg-config
-        ];
+            nativeBuildInputs = with pkgs; [
+              # improve nested shells
+              bashInteractive
+              pkg-config
+            ];
 
-        buildInputs = with pkgs; [
-          (rust-toolchain.withComponents [
-            "cargo"
-            "clippy"
-            "rust-analyzer"
-            "rust-src"
-            "rustc"
-            "rustfmt"
-          ])
-          openssl
-        ];
-        # env vars
-        RUST_SRC_PATH = "${rust-toolchain.rust-src}/lib/rustlib/src/rust/library";
-      };
-      formatter.${system} = pkgs.nixfmt-rfc-style;
+            buildInputs = with pkgs; [
+              (rust-toolchain.withComponents [
+                "cargo"
+                "clippy"
+                "rust-analyzer"
+                "rust-src"
+                "rustc"
+                "rustfmt"
+              ])
+              openssl
+            ];
+            # env vars
+            RUST_SRC_PATH = "${rust-toolchain.rust-src}/lib/rustlib/src/rust/library";
+          };
+        }
+      );
+      formatter = forAllSystems (system: allPkgs.${system}.nixfmt-rfc-style);
     };
 }
