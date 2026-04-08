@@ -47,7 +47,7 @@
         pre-commit-hooks = git-hooks.lib.${system}.run {
           hooks = {
             end-of-file-fixer.enable = true;
-            nixfmt-rfc-style.enable = true;
+            nixfmt.enable = true;
             rustfmt = {
               enable = true;
               packageOverrides = {
@@ -93,6 +93,6 @@
           };
         }
       );
-      formatter = forAllSystems (system: allPkgs.${system}.nixfmt-rfc-style);
+      formatter = forAllSystems (system: allPkgs.${system}.nixfmt);
     };
 }
