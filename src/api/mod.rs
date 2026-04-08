@@ -44,7 +44,7 @@ impl GameState {
         }
     }
 
-    pub fn get_data(&self) -> GameData {
+    pub fn get_data(&self) -> GameData<'_> {
         match self {
             GameState::Setup(game) => GameData {
                 id: game.id(),

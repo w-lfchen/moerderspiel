@@ -117,7 +117,7 @@ impl Game<Running> {
         self.phase.get_kills(player)
     }
 
-    pub fn get_player_data(&self, player_id: &PlayerID) -> Result<PlayerData, NotFoundError> {
+    pub fn get_player_data(&self, player_id: &PlayerID) -> Result<PlayerData<'_>, NotFoundError> {
         let player = self
             .phase
             .get_player(player_id)

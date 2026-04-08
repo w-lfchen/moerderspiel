@@ -14,10 +14,10 @@ dotenvy = "0.15.7"
 # ssl
 openssl = "0.10.72"
 # we will need to randomize things such as the order of players in a circle
-rand = "0.9.0"
+rand = "0.10.0"
 # (de-)serialization
 serde = { version = "1.0.219", features = ["derive"] }
 # easy custom error types
 thiserror = "2.0.12"
-# i've been told that i should use this
-uuid = { version = "1.16.0", features = ["serde", "v4"] }
+# uuid generation
+uuid = { version = "1.23.0", features = ["serde", "v4"] }

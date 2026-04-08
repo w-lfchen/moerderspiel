@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::anyhow;
-use rand::seq::SliceRandom;
+use rand::seq::SliceRandom as _;
 use serde::{Deserialize, Serialize};
 
 use super::{
