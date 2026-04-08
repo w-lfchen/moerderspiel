@@ -74,10 +74,9 @@
             nativeBuildInputs = with pkgs; [
               # improve nested shells
               bashInteractive
-              pkg-config
             ];
 
-            buildInputs = with pkgs; [
+            buildInputs = [
               (rust-toolchain.withComponents [
                 "cargo"
                 "clippy"
@@ -86,7 +85,6 @@
                 "rustc"
                 "rustfmt"
               ])
-              openssl
             ];
             # env vars
             RUST_SRC_PATH = "${rust-toolchain.rust-src}/lib/rustlib/src/rust/library";

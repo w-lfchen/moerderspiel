@@ -9,7 +9,10 @@ use api::{
     },
 };
 use config::Config;
-use openssl::ssl::{SslAcceptor, SslMethod};
+use rustls::{
+    ServerConfig,
+    pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject as _},
+};
 
 mod api;
 mod config;
@@ -43,14 +46,30 @@ async fn main() -> anyhow::Result<()> {
     });
 
     match (config.cert_path(), config.key_path()) {
-        // both certificate and key need to be set for openssl tls support
+        // both certificate and key need to be set for https support
         (Some(cert_path), Some(key_path)) => {
             // ssl setup
-            let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
-            builder.set_private_key_file(key_path, openssl::ssl::SslFiletype::PEM)?;
-            builder.set_certificate_chain_file(cert_path)?;
+            // https://github.com/actix/examples/blob/f0080fc31c20352dfefaa45ca0f7227606da50f3/https-tls/rustls/src/main.rs#L44
+            rustls::crypto::aws_lc_rs::default_provider()
+                .install_default()
+                .unwrap();
 
-            server.bind_openssl((config.address(), config.port()), builder)
+            // load TLS key/cert files
+            let cert_chain = CertificateDer::pem_file_iter(cert_path)
+                .unwrap()
+                .flatten()
+                .collect();
+
+            let key_der = PrivateKeyDer::from_pem_file(key_path)
+                .expect("Could not locate PKCS 8 private keys.");
+
+            server.bind_rustls_0_23(
+                (config.address(), config.port()),
+                ServerConfig::builder()
+                    .with_no_client_auth()
+                    .with_single_cert(cert_chain, key_der)
+                    .unwrap(),
+            )
         }
         _ => server.bind((config.address(), config.port())),
     }?
