@@ -77,6 +77,8 @@
               # backend
               diesel-cli
               pkg-config
+              # frontend
+              bun
             ];
 
             buildInputs = [
