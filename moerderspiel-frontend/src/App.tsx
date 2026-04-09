@@ -1,11 +1,13 @@
-import { Button } from "@/components/ui/button"
+import Running from "./pages/running";
+import Setup from "./pages/setup";
 
 function App() {
   return (
     <>
-      <Button>hello world</Button>
+      <Setup />
+      <Running />
     </>
-  )
+  );
 }
 
 export default App
