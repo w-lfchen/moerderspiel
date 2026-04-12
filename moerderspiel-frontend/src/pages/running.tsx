@@ -3,6 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuTrigg
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import Header from "./header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Setup() {
   const [position, setPosition] = useState("0")
@@ -30,6 +31,22 @@ export default function Setup() {
       <div className="flex">
         <Input type="password" placeholder="Passwort" />
         <Button>Status anfragen</Button>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2">
+            <p>Leben</p>
+            <p>Kills</p>
+          </div>
+        </CardContent>
+      </Card>
+      <div className="grid grid-cols-1">
+        <Button>kill order placehoder</Button>
+        <Button>kill order placehoder</Button>
+        <Button>kill order placehoder</Button>
       </div>
     </>
   );
