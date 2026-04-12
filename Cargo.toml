@@ -6,11 +6,18 @@ edition = "2024"
 [dependencies]
 actix-cors = "0.7.1"
 # web framework for rest api
-actix-web = {version = "4.10.2", features = ["rustls-0_23"]}
+actix-web = { version = "4.10.2", features = ["rustls-0_23"] }
 # currently don't have the time to flesh out error types
 anyhow = "1.0.97"
+# db orm
+diesel = { version = "2.3.7", features = [
+    "sqlite",
+    "returning_clauses_for_sqlite_3_35",
+] }
 # env file support
 dotenvy = "0.15.7"
+# fix weird linking issues by enabling 'bundled'
+libsqlite3-sys = { version = "0.36", features = ["bundled"] }
 # we will need to randomize things such as the order of players in a circle
 rand = "0.10.0"
 # ssl

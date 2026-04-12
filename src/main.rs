@@ -16,6 +16,7 @@ use rustls::{
 
 mod api;
 mod config;
+mod db;
 mod gamelogic;
 
 #[actix_web::main]

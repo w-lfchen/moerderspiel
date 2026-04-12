@@ -74,9 +74,13 @@
             nativeBuildInputs = with pkgs; [
               # improve nested shells
               bashInteractive
+              # backend
+              diesel-cli
+              pkg-config
             ];
 
             buildInputs = [
+              pkgs.sqlite
               (rust-toolchain.withComponents [
                 "cargo"
                 "clippy"

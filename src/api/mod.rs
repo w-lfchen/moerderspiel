@@ -1,4 +1,5 @@
 pub mod endpoints;
+pub mod single_game;
 
 use std::{collections::HashMap, sync::RwLock};
 
