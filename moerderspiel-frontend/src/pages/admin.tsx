@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import Header from "./header";
+import Header from "../components/header";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import Selector from "@/components/selector";
 
 export default function Admin() {
   return (
@@ -11,6 +12,7 @@ export default function Admin() {
       <Button>Start</Button>
       <Button>Finish</Button>
       <div className="flex">
+        <Selector />
         <Input type="text" placeholder="Rufname" />
         <Dialog>
           <form>

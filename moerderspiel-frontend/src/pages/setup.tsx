@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import Header from "./header";
+import Header from "../components/header";
 
 export default function Setup() {
   const [selected, setSelected] = useState(0);
