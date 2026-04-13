@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS `games`;
+DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `kills`;

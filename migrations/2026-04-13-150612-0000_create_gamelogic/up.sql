@@ -1,0 +1,19 @@
+CREATE TABLE `games`(
+	`id` INTEGER NOT NULL PRIMARY KEY,
+	`name` TEXT NOT NULL,
+	`phase` INTEGER NOT NULL
+);
+
+CREATE TABLE `orders`(
+	`id` INTEGER NOT NULL PRIMARY KEY,
+	`circle` INTEGER NOT NULL,
+	`executor` INTEGER NOT NULL REFERENCES players(id),
+	`target` INTEGER NOT NULL REFERENCES players(id)
+);
+
+CREATE TABLE `kills`(
+	`id` INTEGER NOT NULL PRIMARY KEY,
+	`timestamp` INTEGER NOT NULL,
+	`killer` INTEGER NOT NULL REFERENCES players(id),
+	`target` INTEGER NOT NULL REFERENCES players(id)
+);
