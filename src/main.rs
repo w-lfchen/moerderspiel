@@ -25,11 +25,13 @@ async fn main() -> anyhow::Result<()> {
 
     let config = Config::from_env();
     let state = web::Data::new(State::new());
+    let pool = db::pool::setup_pool(&config).await?;
     let server = HttpServer::new(move || {
         App::new()
             // TODO: :warning: DO NOT SHIP :warning:
             .wrap(Cors::permissive())
             .app_data(state.clone())
+            .app_data(web::Data::new(pool.clone()))
             .service(add_player)
             .service(remove_player)
             .service(start_game)

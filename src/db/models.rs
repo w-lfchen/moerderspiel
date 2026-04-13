@@ -12,10 +12,11 @@ pub struct Player {
     pub hashed_password: String,
 }
 
-#[derive(Insertable)]
+#[derive(serde::Deserialize, Insertable)]
 #[diesel(table_name = players)]
-pub struct NewPlayer<'a> {
-    pub name: &'a str,
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+pub struct NewPlayer {
+    pub name: String,
     pub variant: i32,
-    pub hashed_password: &'a str,
+    pub hashed_password: String,
 }

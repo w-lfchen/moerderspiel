@@ -19,6 +19,7 @@ pub struct Config {
     port: u16,
     cert_path: Option<PathBuf>,
     key_path: Option<PathBuf>,
+    db_url: String,
 }
 
 impl Config {
@@ -30,6 +31,8 @@ impl Config {
     /// - `MOERDERSPIEL_PORT`: port to bind on
     /// - `MOERDERSPIEL_TLS_CERT_PATH`: path to the tls certificate chain
     /// - `MOERDERSPIEL_TLS_KEY_PATH`: path to the tls private key
+    ///
+    /// will panic if `DATABASE_URL` is not set
     ///
     /// both the cert path and the key path need to be set to enable tls
     pub fn from_env() -> Self {
@@ -46,6 +49,7 @@ impl Config {
             },
             cert_path: env::var("MOERDERSPIEL_TLS_CERT_PATH").map(Into::into).ok(),
             key_path: env::var("MOERDERSPIEL_TLS_KEY_PATH").map(Into::into).ok(),
+            db_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
         }
     }
 
@@ -63,5 +67,9 @@ impl Config {
 
     pub fn key_path(&self) -> Option<&Path> {
         self.key_path.as_deref()
+    }
+
+    pub fn db_url(&self) -> &str {
+        &self.db_url
     }
 }
