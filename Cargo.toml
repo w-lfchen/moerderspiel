@@ -9,6 +9,8 @@ actix-cors = "0.7.1"
 actix-web = { version = "4.10.2", features = ["rustls-0_23"] }
 # currently don't have the time to flesh out error types
 anyhow = "1.0.97"
+# pw hashing
+argon2 = { version = "0.5.3", features = ["std"] }
 # db connection pooling
 bb8 = "0.9.1"
 chrono = { version = "0.4.44", features = ["serde"] }
