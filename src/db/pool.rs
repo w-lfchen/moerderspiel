@@ -6,7 +6,7 @@ use diesel_async::{
 
 use crate::config::Config;
 
-type SqliteConnWrapped = SyncConnectionWrapper<diesel::SqliteConnection>;
+pub type SqliteConnWrapped = SyncConnectionWrapper<diesel::SqliteConnection>;
 pub type Pool = diesel_async::pooled_connection::bb8::Pool<SqliteConnWrapped>;
 
 /// set up the db connection pool

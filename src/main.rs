@@ -30,6 +30,30 @@ async fn main() -> anyhow::Result<()> {
 
     let state = web::Data::new(State::new());
     let pool = db::pool::setup_pool(&CONFIG).await?;
+
+    {
+        // TODO: remove, this is mvp slop
+        // ensure a single game instance exists
+        use crate::db::{
+            models::{NewGame, Phase},
+            schema::games,
+        };
+        use diesel_async::RunQueryDsl;
+        let mut conn = pool.get().await.expect("failed to get connection");
+        diesel::delete(games::table)
+            .execute(&mut conn)
+            .await
+            .expect("failed to clear games");
+        diesel::insert_into(games::table)
+            .values(NewGame {
+                name: "singleton",
+                phase: Phase::Setup,
+            })
+            .execute(&mut conn)
+            .await
+            .expect("failed to insert singleton game");
+    }
+
     let server = HttpServer::new(move || {
         App::new()
             // TODO: :warning: DO NOT SHIP :warning:
@@ -50,6 +74,11 @@ async fn main() -> anyhow::Result<()> {
             .service(create_game)
             .service(get_game_data_all)
             .service(delete_game)
+            .service(api::single_game::game_finish)
+            .service(api::single_game::game_player_add)
+            .service(api::single_game::game_player_status)
+            .service(api::single_game::game_start)
+            .service(api::single_game::game_status)
     });
 
     match (CONFIG.cert_path(), CONFIG.key_path()) {
