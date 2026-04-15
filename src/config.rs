@@ -20,6 +20,7 @@ pub struct Config {
     cert_path: Option<PathBuf>,
     key_path: Option<PathBuf>,
     db_url: String,
+    pepper: String,
 }
 
 impl Config {
@@ -27,12 +28,14 @@ impl Config {
     ///
     /// currently silently ignores errors when reading the variables or parsing them
     /// variables:
-    /// - `MOERDERSPIEL_ADDRESS`: address to bind on
-    /// - `MOERDERSPIEL_PORT`: port to bind on
+    /// - `MOERDERSPIEL_ADDRESS`: address to bind on, defaults to 127.0.0.1 for dev and 0.0.0.0 for not dev
+    /// - `MOERDERSPIEL_PORT`: port to bind on, defaults to 3000
     /// - `MOERDERSPIEL_TLS_CERT_PATH`: path to the tls certificate chain
     /// - `MOERDERSPIEL_TLS_KEY_PATH`: path to the tls private key
     ///
-    /// will panic if `DATABASE_URL` is not set
+    /// will panic if the following env vars are unset:
+    /// - `DATABASE_URL`
+    /// - `MOERDERSPIEL_PEPPER`
     ///
     /// both the cert path and the key path need to be set to enable tls
     pub fn from_env() -> Self {
@@ -50,6 +53,7 @@ impl Config {
             cert_path: env::var("MOERDERSPIEL_TLS_CERT_PATH").map(Into::into).ok(),
             key_path: env::var("MOERDERSPIEL_TLS_KEY_PATH").map(Into::into).ok(),
             db_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
+            pepper: env::var("MOERDERSPIEL_PEPPER").expect("MOERDERSPIEL_PEPPER must be set"),
         }
     }
 
@@ -71,5 +75,9 @@ impl Config {
 
     pub fn db_url(&self) -> &str {
         &self.db_url
+    }
+
+    pub fn pepper(&self) -> &str {
+        &self.pepper
     }
 }

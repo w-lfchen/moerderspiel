@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 use api::{
@@ -7,6 +9,7 @@ use api::{
         get_game_data_all, get_player_data, get_player_status, import_game, kill, remove_player,
         reset_game, start_game,
     },
+    single_game,
 };
 use config::Config;
 use rustls::{
@@ -19,13 +22,15 @@ mod config;
 mod db;
 mod gamelogic;
 
+pub static CONFIG: LazyLock<Config> = LazyLock::new(Config::from_env);
+
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
+    // must be called before accessing config
     dotenvy::dotenv()?;
 
-    let config = Config::from_env();
     let state = web::Data::new(State::new());
-    let pool = db::pool::setup_pool(&config).await?;
+    let pool = db::pool::setup_pool(&CONFIG).await?;
     let server = HttpServer::new(move || {
         App::new()
             // TODO: :warning: DO NOT SHIP :warning:
@@ -46,9 +51,17 @@ async fn main() -> anyhow::Result<()> {
             .service(create_game)
             .service(get_game_data_all)
             .service(delete_game)
+            .service(single_game::game_finish)
+            .service(single_game::game_player_add)
+            .service(single_game::game_player_status)
+            .service(single_game::game_start)
+            .service(single_game::game_status)
+            .service(single_game::game_player_delete)
+            .service(single_game::game_order_complete)
+            .service(single_game::game_reset)
     });
 
-    match (config.cert_path(), config.key_path()) {
+    match (CONFIG.cert_path(), CONFIG.key_path()) {
         // both certificate and key need to be set for https support
         (Some(cert_path), Some(key_path)) => {
             // ssl setup
@@ -67,14 +80,14 @@ async fn main() -> anyhow::Result<()> {
                 .expect("Could not locate PKCS 8 private keys.");
 
             server.bind_rustls_0_23(
-                (config.address(), config.port()),
+                (CONFIG.address(), CONFIG.port()),
                 ServerConfig::builder()
                     .with_no_client_auth()
                     .with_single_cert(cert_chain, key_der)
                     .unwrap(),
             )
         }
-        _ => server.bind((config.address(), config.port())),
+        _ => server.bind((CONFIG.address(), CONFIG.port())),
     }?
     .run()
     .await
