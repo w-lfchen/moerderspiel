@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use diesel::{
     backend::Backend,
     deserialize::{FromSql, FromSqlRow},
@@ -17,9 +17,9 @@ use crate::{
     db::schema::{games, kills, orders, players},
 };
 
-#[derive(Clone, Debug, Queryable, Selectable)]
+#[derive(Clone, Debug, Queryable, Selectable, Serialize)]
 #[diesel(table_name = players)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 pub struct Player {
     pub id: i32,
     pub name: String,
@@ -30,7 +30,7 @@ pub struct Player {
 /// incoming player struct
 #[derive(Debug, Deserialize, Insertable)]
 #[diesel(table_name = players)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 pub struct PlayerData {
     pub name: String,
     pub variant: i32,
@@ -96,7 +96,7 @@ where
 
 #[derive(Debug, Queryable, Selectable)]
 #[diesel(table_name = games)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 pub struct Game {
     pub id: i32,
     pub name: String,
@@ -105,15 +105,15 @@ pub struct Game {
 
 #[derive(Debug, Insertable)]
 #[diesel(table_name = games)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 pub struct NewGame<'a> {
     pub name: &'a str,
     pub phase: Phase,
 }
 
-#[derive(Debug, Queryable, Selectable)]
+#[derive(Debug, Identifiable, Queryable, Selectable, Serialize)]
 #[diesel(table_name = orders)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 pub struct Order {
     pub id: i32,
     pub circle: i32,
@@ -123,7 +123,7 @@ pub struct Order {
 
 #[derive(Clone, Copy, Debug, Insertable)]
 #[diesel(table_name = orders)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewOrder {
     pub circle: i32,
@@ -131,11 +131,20 @@ pub struct NewOrder {
     pub target: i32,
 }
 
-#[derive(Debug, Queryable, Selectable)]
+#[derive(Debug, Queryable, Selectable, Serialize)]
 #[diesel(table_name = kills)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(Sqlite))]
 pub struct Kill {
     pub id: i32,
+    pub timestamp: TimeStamp,
+    pub killer: i32,
+    pub target: i32,
+}
+
+#[derive(Debug, Insertable)]
+#[diesel(table_name = kills)]
+#[diesel(check_for_backend(Sqlite))]
+pub struct NewKill {
     pub timestamp: TimeStamp,
     pub killer: i32,
     pub target: i32,
@@ -144,9 +153,17 @@ pub struct Kill {
 /// this type wraps a [`DateTime<Utc>`] and acts as a workaround for sqlite's lack of datetime support
 ///
 /// we store unix timestamps in the sqlite db and interpret them as such
-#[derive(Debug, FromSqlRow)]
+#[derive(AsExpression, Debug, Deserialize, FromSqlRow, Serialize)]
+#[diesel(sql_type = diesel::sql_types::Timestamp)]
+#[serde(transparent)]
 #[repr(transparent)]
 pub struct TimeStamp(DateTime<Utc>);
+
+impl From<DateTime<Utc>> for TimeStamp {
+    fn from(value: DateTime<Utc>) -> Self {
+        Self(value)
+    }
+}
 
 impl Deref for TimeStamp {
     type Target = DateTime<Utc>;
@@ -156,15 +173,22 @@ impl Deref for TimeStamp {
     }
 }
 
-impl FromSql<Integer, Sqlite> for TimeStamp {
+// could be more generic
+impl FromSql<diesel::sql_types::Timestamp, Sqlite> for TimeStamp {
     fn from_sql(
         bytes: <Sqlite as diesel::backend::Backend>::RawValue<'_>,
     ) -> diesel::deserialize::Result<Self> {
-        let unix_timestamp = i64::from_sql(bytes)?;
-        DateTime::from_timestamp_secs(unix_timestamp)
-            .map(Self)
-            .ok_or_else(|| {
-                anyhow::anyhow!("failed to deserialize {unix_timestamp} as unix timestamp").into()
-            })
+        <NaiveDateTime as FromSql<diesel::sql_types::Timestamp, Sqlite>>::from_sql(bytes)
+            .map(|naive| Self(naive.and_utc()))
+    }
+}
+
+impl ToSql<diesel::sql_types::Timestamp, Sqlite> for TimeStamp {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> diesel::serialize::Result {
+        // taken from https://docs.rs/diesel/2.3.7/src/diesel/sqlite/types/date_and_time/chrono.rs.html#28
+        const ENCODE_NAIVE_DATETIME_FORMAT: &str = "%F %T%.f";
+        // see https://docs.rs/diesel/2.3.7/src/diesel/sqlite/types/date_and_time/chrono.rs.html#147
+        out.set_value(self.format(ENCODE_NAIVE_DATETIME_FORMAT).to_string());
+        Ok(diesel::serialize::IsNull::No)
     }
 }

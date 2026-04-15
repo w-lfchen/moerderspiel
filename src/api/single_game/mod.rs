@@ -1,12 +1,14 @@
 //! single game instance apis
 
 use actix_web::{
-    HttpResponse,
+    HttpResponse, delete,
     error::{ErrorInternalServerError, ErrorUnauthorized},
     get, post,
-    web::{self, Data, Json},
+    web::{self, Data, Json, Path},
 };
-use diesel::{BoolExpressionMethods, ExpressionMethods, JoinOnDsl, QueryDsl};
+use diesel::{
+    BoolExpressionMethods, ExpressionMethods, JoinOnDsl, QueryDsl, SelectableHelper as _,
+};
 use diesel_async::{RunQueryDsl, pooled_connection::bb8::PooledConnection};
 use rand::seq::SliceRandom;
 use serde_json::json;
@@ -14,7 +16,7 @@ use serde_json::json;
 use crate::{
     api::single_game::logic::assert_phase,
     db::{
-        models::{Game, NewOrder, Order, Phase, Player, PlayerData},
+        models::{Game, Kill, NewGame, NewKill, NewOrder, Order, Phase, Player, PlayerData},
         pool::{Pool, SqliteConnWrapped},
         schema::{games, kills, orders, players},
     },
@@ -130,6 +132,76 @@ pub async fn game_player_status(
     })))
 }
 
+/// delete by id
+#[delete("/game/player/{player_id}")]
+pub async fn game_player_delete(
+    pool: Data<Pool>,
+    path: Path<i32>,
+) -> actix_web::Result<HttpResponse> {
+    let mut conn = get_conn(&pool).await?;
+    assert_phase(&mut conn, Phase::Setup).await?;
+    let player_id = path.into_inner();
+    let deleted_player = diesel::delete(players::table)
+        .filter(players::id.eq(player_id))
+        .get_result::<Player>(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(deleted_player))
+}
+
+/// delete by id
+#[post("/game/order/{order_id}")]
+pub async fn game_order_complete(
+    pool: Data<Pool>,
+    path: Path<i32>,
+) -> actix_web::Result<HttpResponse> {
+    let mut conn = get_conn(&pool).await?;
+    assert_phase(&mut conn, Phase::Running).await?;
+
+    // resolve order
+    let order_id = path.into_inner();
+    let executed_order = orders::table
+        .filter(orders::id.eq(order_id))
+        .get_result::<Order>(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    println!("{executed_order:?}");
+    // delete the target's order, taking one life
+    let target_order = diesel::delete(orders::table)
+        .filter(
+            orders::circle
+                .eq(executed_order.circle)
+                .and(orders::executor.eq(executed_order.target)),
+        )
+        .get_result::<Order>(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+
+    // update executor's order
+    let new_order = diesel::update(&executed_order)
+        .set(orders::target.eq(target_order.target))
+        .get_result::<Order>(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+
+    // record kill
+    let kill = diesel::insert_into(kills::table)
+        .values(NewKill {
+            timestamp: chrono::Utc::now().into(),
+            killer: executed_order.executor,
+            target: executed_order.target,
+        })
+        .returning(Kill::as_returning())
+        .get_result(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "new_order": new_order,
+        "kill": kill,
+    })))
+}
+
 /// game info
 #[get("/game")]
 pub async fn game_status(pool: Data<Pool>) -> actix_web::Result<HttpResponse> {
@@ -145,10 +217,46 @@ pub async fn game_status(pool: Data<Pool>) -> actix_web::Result<HttpResponse> {
         .await
         .map_err(ErrorInternalServerError)?;
     Ok(HttpResponse::Ok().json(json!({
+        "id": game.id,
+        "name": game.name,
         "num_players": num_players,
         "phase": game.phase,
         "num_circles": NUM_CIRCLES,
     })))
+}
+
+/// clear all tables
+#[post("/game/reset")]
+pub async fn game_reset(pool: Data<Pool>) -> actix_web::Result<HttpResponse> {
+    let mut conn = get_conn(&pool).await?;
+    // clear tables
+    diesel::delete(kills::table)
+        .execute(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    diesel::delete(orders::table)
+        .execute(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    diesel::delete(players::table)
+        .execute(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    diesel::delete(games::table)
+        .execute(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+
+    // ensure a single game instance exists
+    diesel::insert_into(games::table)
+        .values(NewGame {
+            name: "singleton",
+            phase: Phase::Setup,
+        })
+        .execute(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().body("game reset"))
 }
 
 #[post("/game/start")]

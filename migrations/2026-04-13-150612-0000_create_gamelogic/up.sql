@@ -13,7 +13,7 @@ CREATE TABLE `orders`(
 
 CREATE TABLE `kills`(
 	`id` INTEGER NOT NULL PRIMARY KEY,
-	`timestamp` INTEGER NOT NULL,
+	`timestamp` DATETIME NOT NULL,
 	`killer` INTEGER NOT NULL REFERENCES players(id),
 	`target` INTEGER NOT NULL REFERENCES players(id)
 );

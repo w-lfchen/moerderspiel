@@ -13,7 +13,7 @@ anyhow = "1.0.97"
 argon2 = { version = "0.5.3", features = ["std"] }
 # db connection pooling
 bb8 = "0.9.1"
-chrono = { version = "0.4.44", features = ["serde"] }
+chrono = { version = "0.4.44", features = ["now", "serde"] }
 # db orm
 diesel = { version = "2.3.7", features = [
     "chrono",

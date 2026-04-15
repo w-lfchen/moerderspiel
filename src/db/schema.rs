@@ -11,7 +11,7 @@ diesel::table! {
 diesel::table! {
     kills (id) {
         id -> Integer,
-        timestamp -> Integer,
+        timestamp -> Timestamp,
         killer -> Integer,
         target -> Integer,
     }
