@@ -5,9 +5,6 @@ import Setup from "./pages/setup";
 import { Button } from "./components/ui/button";
 import type { JSX } from "react/jsx-runtime";
 
-// TODO: adjust
-export const backend_url = "https://localhost:3000";
-
 function App() {
   const [page, setPage] = useState(0);
   let p: JSX.Element;

@@ -5,19 +5,12 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import Header from "@/components/header";
-import { backend_url } from "@/App";
 import { Label } from "@/components/ui/label";
+
+import Header from "@/components/header";
+import { fetch_post } from "@/lib/utils";
 
 export default function Setup() {
   const [selected, setSelected] = useState(null);
@@ -50,14 +43,10 @@ export default function Setup() {
       setRegisterMessage(<Label className="text-red-500">Bitte wähle eine Variante aus.</Label>);
       return;
     }
-    await fetch(backend_url + "/game/player", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        "name": name,
-        "variant": 0,
-        "hashed_password": password,
-      }),
+    await fetch_post("/game/player/add", {
+      "name": name,
+      "variant": selected,
+      "hashed_password": password,
     }).then(response =>
       setRegisterMessage(response.ok ? <Label>Registrierung erfolgreich</Label> : <Label className="text-red-500">Fehler: {response.text()}</Label>)
     );
@@ -80,7 +69,7 @@ export default function Setup() {
                   <FormItem>
                     <FormLabel>Rufname</FormLabel>
                     <FormControl>
-                      <Input placeholder="Rufname" {...field} />
+                      <Input type="text" placeholder="Rufname" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,7 +88,7 @@ export default function Setup() {
                   <FormItem>
                     <FormLabel>Passwort</FormLabel>
                     <FormControl>
-                      <Input placeholder="Passwort" {...field} />
+                      <Input type="password" placeholder="Passwort" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,7 +101,7 @@ export default function Setup() {
                   <FormItem>
                     <FormLabel>Passwort bestätigen</FormLabel>
                     <FormControl>
-                      <Input placeholder="Passwort" {...field} />
+                      <Input type="password" placeholder="Passwort" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

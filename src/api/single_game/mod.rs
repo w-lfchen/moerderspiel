@@ -33,7 +33,7 @@ async fn get_conn(
 }
 
 /// create player
-#[post("/game/player")]
+#[post("/game/player/add")]
 pub async fn game_player_add(
     pool: Data<Pool>,
     Json(player_data): Json<PlayerData>,
@@ -76,8 +76,8 @@ pub async fn game_player_add(
     )
 }
 
-/// player state
-#[get("/game/player")]
+/// player state, post because we want to pass a body
+#[post("/game/player/status")]
 pub async fn game_player_status(
     pool: Data<Pool>,
     Json(player_data): Json<PlayerData>,
@@ -101,8 +101,8 @@ pub async fn game_player_status(
     // password was correct
     // might be able to improve these queries but need something that works now
     let orders = orders::table
-        .inner_join(players::table.on(orders::executor.eq(players::id)))
-        .filter(orders::target.eq(player.id))
+        .inner_join(players::table.on(orders::target.eq(players::id)))
+        .filter(orders::executor.eq(player.id))
         .get_results::<(Order, Player)>(&mut conn)
         .await
         .map_err(ErrorInternalServerError)?
@@ -149,7 +149,7 @@ pub async fn game_player_delete(
     Ok(HttpResponse::Ok().json(deleted_player))
 }
 
-/// delete by id
+/// complete order by id
 #[post("/game/order/{order_id}")]
 pub async fn game_order_complete(
     pool: Data<Pool>,
@@ -165,7 +165,6 @@ pub async fn game_order_complete(
         .get_result::<Order>(&mut conn)
         .await
         .map_err(ErrorInternalServerError)?;
-    println!("{executed_order:?}");
     // delete the target's order, taking one life
     let target_order = diesel::delete(orders::table)
         .filter(
@@ -183,6 +182,11 @@ pub async fn game_order_complete(
         .get_result::<Order>(&mut conn)
         .await
         .map_err(ErrorInternalServerError)?;
+    let new_target = players::table
+        .filter(players::id.eq(new_order.target))
+        .get_result::<Player>(&mut conn)
+        .await
+        .map_err(ErrorInternalServerError)?;
 
     // record kill
     let kill = diesel::insert_into(kills::table)
@@ -196,8 +200,15 @@ pub async fn game_order_complete(
         .await
         .map_err(ErrorInternalServerError)?;
 
+    // TODO: consider defining an outgoing order type
     Ok(HttpResponse::Ok().json(json!({
-        "new_order": new_order,
+        "new_order": {
+            "id": new_order.id,
+            "circle": new_order.circle,
+            "target_id": new_order.target,
+            "target_name": new_target.name,
+            "target_variant": new_target.variant,
+        },
         "kill": kill,
     })))
 }
