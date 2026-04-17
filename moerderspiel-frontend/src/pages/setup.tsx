@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,7 +13,7 @@ import Header from "@/components/header";
 import { fetch_post, digestMessage } from "@/lib/utils";
 
 export default function Setup() {
-  const [registerMessage, setRegisterMessage] = useState(null);
+  const [registerMessage, setRegisterMessage] = useState<JSX.Element | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // slop doc example code

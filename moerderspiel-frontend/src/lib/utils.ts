@@ -27,7 +27,7 @@ export function fetch_get(path: string): Promise<Response> {
 
 // hashed s with sha-256 and returns a string
 // see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
-export async function digestMessage(message) {
+export async function digestMessage(message: string): Promise<string> {
   const msgUint8 = new TextEncoder().encode(message);
   const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8);
   const hashArray = Array.from(new Uint8Array(hashBuffer));

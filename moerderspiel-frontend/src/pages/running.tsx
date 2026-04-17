@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,8 +15,8 @@ import type { PlayerState } from "@/lib/types";
 import { PlayerStatePage } from "@/components/player_state";
 
 export default function Running() {
-  const [statusError, setStatusError] = useState(null);
-  const [playerState, setPlayerState] = useState(null);
+  const [statusError, setStatusError] = useState<JSX.Element | null>(null);
+  const [playerState, setPlayerState] = useState<PlayerState | null>(null);
 
   // slop doc example code
   const formSchema = z.object({
