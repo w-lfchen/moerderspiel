@@ -51,9 +51,7 @@ pub async fn game_player_add(
         .map_err(ErrorInternalServerError)?
         .is_empty()
     {
-        return Ok(HttpResponse::Conflict().body(
-            "player with name and variant already exists, please choose a different variant",
-        ));
+        return Ok(HttpResponse::Conflict().body("Name ist bereits in Verwendung"));
     }
     // data race leading to duplicate player entry can be ignored for now
     let player_data = web::block(|| player_data.hash_password_in_place())

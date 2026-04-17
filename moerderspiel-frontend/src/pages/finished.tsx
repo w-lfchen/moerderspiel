@@ -1,7 +1,10 @@
+import Header from "@/components/header";
+
 export default function Finished() {
   return (
     <>
-      finished
+      <Header />
+      game finished
     </>
   );
 }

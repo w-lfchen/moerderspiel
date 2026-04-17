@@ -24,3 +24,16 @@ export function fetch_post(path: string, body?: object): Promise<Response> {
 export function fetch_get(path: string): Promise<Response> {
   return fetch(backend_url + path, { method: "GET" });
 }
+
+// hashed s with sha-256 and returns a string
+// see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+export async function digestMessage(message) {
+  const msgUint8 = new TextEncoder().encode(message);
+  const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // toHex is giving me errors :(
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hashHex;
+}

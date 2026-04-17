@@ -10,11 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 
 import Header from "@/components/header";
-import { fetch_post } from "@/lib/utils";
+import { fetch_post, digestMessage } from "@/lib/utils";
 
 export default function Setup() {
-  const [selected, setSelected] = useState(null);
   const [registerMessage, setRegisterMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // slop doc example code
   const formSchema = z.object({
@@ -38,18 +38,19 @@ export default function Setup() {
   });
 
   async function onSubmit({ name, password }: z.infer<typeof formSchema>) {
-    // TODO: hash password before sending
-    if (selected === null) {
-      setRegisterMessage(<Label className="text-red-500">Bitte wähle eine Variante aus.</Label>);
-      return;
+    setRegisterMessage(null);
+    setIsLoading(true);
+    try {
+      await fetch_post("/game/player/add", {
+        "name": name,
+        "hashed_password": await digestMessage(password),
+      }).then(async response =>
+        setRegisterMessage(response.ok ? <Label className="m-4">Spieler mit Name {(await response.json()).name} erfolgreich registriert</Label> : <Label className="text-red-500 m-4">Fehler: {response.text()}</Label>)
+      );
     }
-    await fetch_post("/game/player/add", {
-      "name": name,
-      "variant": selected,
-      "hashed_password": password,
-    }).then(response =>
-      setRegisterMessage(response.ok ? <Label>Registrierung erfolgreich</Label> : <Label className="text-red-500">Fehler: {response.text()}</Label>)
-    );
+    finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -75,12 +76,6 @@ export default function Setup() {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-2 my-2">
-                <Button className={selected == 1 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 1 ? "noShadow" : "default"} disabled={selected == 1} onClick={() => setSelected(1)}>1</Button>
-                <Button className={selected == 2 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 2 ? "noShadow" : "default"} disabled={selected == 2} onClick={() => setSelected(2)}>2</Button>
-                <Button className={selected == 3 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 3 ? "noShadow" : "default"} disabled={selected == 3} onClick={() => setSelected(3)}>3</Button>
-                <Button className={selected == 4 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 4 ? "noShadow" : "default"} disabled={selected == 4} onClick={() => setSelected(4)}>4</Button>
-              </div>
               <FormField
                 control={form.control}
                 name="password"
@@ -107,8 +102,11 @@ export default function Setup() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Bestätigen</Button>
-              {registerMessage}
+              <div className="flex-col">
+                <Button type="submit">Bestätigen</Button>
+                {isLoading && <Label className="m-4">Wird verarbeitet...</Label>}
+                {registerMessage}
+              </div>
             </form>
           </Form>
         </CardContent>

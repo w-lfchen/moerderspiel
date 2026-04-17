@@ -10,13 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import Header from "@/components/header";
-import Selector from "@/components/selector";
-import { fetch_post } from "@/lib/utils";
+import { digestMessage, fetch_post } from "@/lib/utils";
 import type { PlayerState } from "@/lib/types";
 import { PlayerStatePage } from "@/components/player_state";
 
 export default function Running() {
-  const [value, setValue] = useState(null);
   const [statusError, setStatusError] = useState(null);
   const [playerState, setPlayerState] = useState(null);
 
@@ -37,16 +35,9 @@ export default function Running() {
   });
 
   async function onSubmit({ name, password }: z.infer<typeof formSchema>) {
-    // TODO: hash password before sending
-    if (value === null) {
-      setStatusError(<Label className="text-red-500">Bitte wähle eine Variante aus.</Label>);
-      return;
-    }
-    // TODO: get requests can't have a body, fix this in both front- and backend
     await fetch_post("/game/player/status", {
       "name": name,
-      "variant": value,
-      "hashed_password": password,
+      "hashed_password": await digestMessage(password),
     }).then(async response => {
       if (response.ok) {
         // TODO: display card
@@ -71,33 +62,24 @@ export default function Running() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
-                  <div className="flex flex-row gap-2 items-baseline">
-                    <FormItem className="my-2">
-                      <FormLabel>Variante</FormLabel>
-                      <FormControl>
-                        <Selector onValueChange={setValue} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem className="my-2">
-                          <FormLabel>Rufname</FormLabel>
-                          <FormControl>
-                            <Input type="text" placeholder="Rufname" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="my-2">
+                        <FormLabel>Rufname</FormLabel>
+                        <FormControl>
+                          <Input type="text" placeholder="Rufname" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="password"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="my-2">
                         <FormLabel>Passwort</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="Passwort" {...field} />

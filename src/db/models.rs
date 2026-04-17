@@ -33,6 +33,7 @@ pub struct Player {
 #[diesel(check_for_backend(Sqlite))]
 pub struct PlayerData {
     pub name: String,
+    #[serde(default)]
     pub variant: i32,
     pub hashed_password: String,
 }
