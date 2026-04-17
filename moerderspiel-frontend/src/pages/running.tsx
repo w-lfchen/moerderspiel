@@ -20,7 +20,6 @@ export default function Running() {
   const [statusError, setStatusError] = useState(null);
   const [playerState, setPlayerState] = useState(null);
 
-
   // slop doc example code
   const formSchema = z.object({
     name: z.string().min(1, {
@@ -60,13 +59,12 @@ export default function Running() {
     });
   }
 
-  // TODO: fix grid layout
   return (
     <>
       <Header />
       {(playerState === null) ?
         <>
-          <Card>
+          <Card className="">
             <CardHeader>
               <CardTitle>Status abfragen</CardTitle>
             </CardHeader>
@@ -74,7 +72,7 @@ export default function Running() {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                   <div className="flex flex-row gap-2 items-baseline">
-                    <FormItem>
+                    <FormItem className="my-2">
                       <FormLabel>Variante</FormLabel>
                       <FormControl>
                         <Selector onValueChange={setValue} />
@@ -85,7 +83,7 @@ export default function Running() {
                       control={form.control}
                       name="name"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="my-2">
                           <FormLabel>Rufname</FormLabel>
                           <FormControl>
                             <Input type="text" placeholder="Rufname" {...field} />
@@ -108,7 +106,8 @@ export default function Running() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit">Status anfragen</Button>
+                  <Button className="my-2" type="submit">Status anfragen</Button>
+                  <br />
                   {statusError}
                 </form>
               </Form>
@@ -122,5 +121,4 @@ export default function Running() {
       }
     </>
   );
-  // TODO: finish
 }

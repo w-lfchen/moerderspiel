@@ -1,6 +1,7 @@
 export default function Header() {
-  // TODO: improve
   return (
-    <h1>Mörderspiel</h1>
+    <div className="flex items-center justify-center text-3xl">
+      <h1>Mörderspiel</h1>
+    </div>
   );
 }

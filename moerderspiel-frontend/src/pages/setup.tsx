@@ -55,7 +55,7 @@ export default function Setup() {
   return (
     <>
       <Header />
-      <Card>
+      <Card className="">
         <CardHeader>
           <CardTitle>Registrieren</CardTitle>
         </CardHeader>
@@ -75,7 +75,7 @@ export default function Setup() {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 my-2">
                 <Button className={selected == 1 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 1 ? "noShadow" : "default"} disabled={selected == 1} onClick={() => setSelected(1)}>1</Button>
                 <Button className={selected == 2 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 2 ? "noShadow" : "default"} disabled={selected == 2} onClick={() => setSelected(2)}>2</Button>
                 <Button className={selected == 3 ? "translate-x-boxShadowX translate-y-boxShadowY" : ""} variant={selected == 3 ? "noShadow" : "default"} disabled={selected == 3} onClick={() => setSelected(3)}>3</Button>
@@ -85,7 +85,7 @@ export default function Setup() {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="my-2">
                     <FormLabel>Passwort</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="Passwort" {...field} />
@@ -98,7 +98,7 @@ export default function Setup() {
                 control={form.control}
                 name="confirm"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="my-2">
                     <FormLabel>Passwort bestätigen</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="Passwort" {...field} />

@@ -19,3 +19,8 @@ export function fetch_post(path: string, body?: object): Promise<Response> {
     body: JSON.stringify(body),
   });
 }
+
+// get
+export function fetch_get(path: string): Promise<Response> {
+  return fetch(backend_url + path, { method: "GET" });
+}
