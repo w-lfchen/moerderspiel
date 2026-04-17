@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let state = web::Data::new(State::new());
     let pool = db::pool::setup_pool(&CONFIG).await?;
     let server = HttpServer::new(move || {
-        App::new()
+        let app = App::new()
             // TODO: :warning: DO NOT SHIP :warning:
             .wrap(Cors::permissive())
             .app_data(state.clone())
@@ -58,7 +58,17 @@ async fn main() -> anyhow::Result<()> {
             .service(single_game::game_status)
             .service(single_game::game_player_delete)
             .service(single_game::game_order_complete)
-            .service(single_game::game_reset)
+            .service(single_game::game_reset);
+        let app = if let Some(frontend_path) = CONFIG.frontend_path() {
+            app.service(
+                actix_files::Files::new("/", frontend_path)
+                    .show_files_listing()
+                    .index_file("index.html"),
+            )
+        } else {
+            app
+        };
+        app
     });
 
     match (CONFIG.cert_path(), CONFIG.key_path()) {

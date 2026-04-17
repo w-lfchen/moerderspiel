@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // TODO: adjust
-export const backend_url = "https://localhost:3000";
+export const backend_url = ".";
 
 // post json body to backend path
 export function fetch_post(path: string, body?: object): Promise<Response> {

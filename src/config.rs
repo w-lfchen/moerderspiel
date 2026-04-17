@@ -21,6 +21,7 @@ pub struct Config {
     key_path: Option<PathBuf>,
     db_url: String,
     pepper: String,
+    frontend_path: Option<PathBuf>,
 }
 
 impl Config {
@@ -32,6 +33,7 @@ impl Config {
     /// - `MOERDERSPIEL_PORT`: port to bind on, defaults to 3000
     /// - `MOERDERSPIEL_TLS_CERT_PATH`: path to the tls certificate chain
     /// - `MOERDERSPIEL_TLS_KEY_PATH`: path to the tls private key
+    /// - `MOERDERSPIEL_FRONTEND_PATH`: path to the frontend, expects a file called `index.html` at the root
     ///
     /// will panic if the following env vars are unset:
     /// - `DATABASE_URL`
@@ -54,6 +56,7 @@ impl Config {
             key_path: env::var("MOERDERSPIEL_TLS_KEY_PATH").map(Into::into).ok(),
             db_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
             pepper: env::var("MOERDERSPIEL_PEPPER").expect("MOERDERSPIEL_PEPPER must be set"),
+            frontend_path: env::var("MOERDERSPIEL_FRONTEND_PATH").map(Into::into).ok(),
         }
     }
 
@@ -79,5 +82,9 @@ impl Config {
 
     pub fn pepper(&self) -> &str {
         &self.pepper
+    }
+
+    pub fn frontend_path(&self) -> Option<&Path> {
+        self.frontend_path.as_deref()
     }
 }
