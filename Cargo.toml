@@ -21,11 +21,11 @@ diesel = { version = "2.3.7", features = [
     "sqlite",
     "returning_clauses_for_sqlite_3_35",
 ] }
-diesel-async = { version = "0.8.0", features = ["bb8", "sqlite"] }
+diesel-async = { version = "0.9.0", features = ["bb8", "sqlite"] }
 # env file support
 dotenvy = "0.15.7"
 # fix weird linking issues by enabling 'bundled'
-libsqlite3-sys = { version = "0.36", features = ["bundled"] }
+libsqlite3-sys = { version = "0.37", features = ["bundled"] }
 # we will need to randomize things such as the order of players in a circle
 rand = "0.10.0"
 # ssl
