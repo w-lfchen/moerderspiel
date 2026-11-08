@@ -43,13 +43,13 @@ impl PlayerData {
     pub fn hash_password_in_place(self) -> Result<Self, anyhow::Error> {
         use argon2::{
             Argon2,
-            password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
+            password_hash::{PasswordHasher, phc::Salt},
         };
-        let salt = SaltString::generate(&mut OsRng);
+        let salt = Salt::generate();
         // default parameters should be fine
         let argon2 = Argon2::default();
         let hashed_password = argon2
-            .hash_password((self.hashed_password + CONFIG.pepper()).as_bytes(), &salt)?
+            .hash_password_with_salt((self.hashed_password + CONFIG.pepper()).as_bytes(), &salt)?
             .to_string();
         Ok(Self {
             hashed_password,

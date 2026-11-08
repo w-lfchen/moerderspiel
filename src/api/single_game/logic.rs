@@ -40,7 +40,7 @@ pub(super) async fn assert_phase(
 pub(super) fn verify_password(hash: &str, pw: String) -> Result<(), anyhow::Error> {
     use argon2::{
         Argon2,
-        password_hash::{PasswordHash, PasswordVerifier},
+        password_hash::{PasswordVerifier, phc::PasswordHash},
     };
 
     let hash = PasswordHash::new(hash)?;
